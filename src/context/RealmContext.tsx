@@ -143,11 +143,7 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                         ...state.storage.realms,
                         [action.payload.realmId]: {
                             ...realm,
-                            clients: {
-                                ...realm.clients,
-                                [action.payload.client.id]:
-                                    action.payload.client,
-                            },
+                            clients: [...realm.clients, action.payload.client],
                             updatedAt: Date.now(),
                         },
                     },
@@ -159,8 +155,16 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
             const realm = state.storage.realms[action.payload.realmId];
             if (!realm) return state;
 
-            const existingClient = realm.clients[action.payload.clientId];
-            if (!existingClient) return state;
+            const clientIndex = realm.clients.findIndex(
+                (c) => c.client === action.payload.clientId,
+            );
+            if (clientIndex === -1) return state;
+
+            const updatedClients = [...realm.clients];
+            updatedClients[clientIndex] = {
+                ...updatedClients[clientIndex],
+                ...action.payload.updates,
+            };
 
             return {
                 ...state,
@@ -170,13 +174,7 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                         ...state.storage.realms,
                         [action.payload.realmId]: {
                             ...realm,
-                            clients: {
-                                ...realm.clients,
-                                [action.payload.clientId]: {
-                                    ...existingClient,
-                                    ...action.payload.updates,
-                                },
-                            },
+                            clients: updatedClients,
                             updatedAt: Date.now(),
                         },
                     },
@@ -188,9 +186,6 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
             const realm = state.storage.realms[action.payload.realmId];
             if (!realm) return state;
 
-            const { [action.payload.clientId]: _, ...remainingClients } =
-                realm.clients;
-
             return {
                 ...state,
                 storage: {
@@ -199,7 +194,9 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                         ...state.storage.realms,
                         [action.payload.realmId]: {
                             ...realm,
-                            clients: remainingClients,
+                            clients: realm.clients.filter(
+                                (c) => c.client !== action.payload.clientId,
+                            ),
                             updatedAt: Date.now(),
                         },
                     },
@@ -301,9 +298,13 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         // Normalize realms to ensure they have clients and licenses
         const normalizedRealms: Record<string, Realm> = {};
         for (const [id, realm] of Object.entries(storage.realms)) {
+            // Handle migration from Record<string, Client> to Client[]
+            const clients = Array.isArray(realm.clients)
+                ? realm.clients
+                : Object.values(realm.clients ?? {});
             normalizedRealms[id] = {
                 ...realm,
-                clients: realm.clients ?? {},
+                clients,
                 licenses: realm.licenses ?? {},
             };
         }
@@ -331,7 +332,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 description,
                 keyPair,
                 defaults: {},
-                clients: {},
+                clients: [],
                 licenses: {},
                 createdAt: now,
                 updatedAt: now,
@@ -408,7 +409,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 createdAt: parsed.exportedAt,
             },
             defaults: parsed.realm.defaults,
-            clients: parsed.realm.clients ?? {},
+            clients: parsed.realm.clients ?? [],
             licenses: parsed.realm.licenses ?? {},
             createdAt: now,
             updatedAt: now,

@@ -13,7 +13,7 @@ export function ClientList() {
         return null;
     }
 
-    const clients = Object.values(activeRealm.clients).sort(
+    const clients = [...activeRealm.clients].sort(
         (a, b) => b.createdAt - a.createdAt,
     );
 
@@ -41,10 +41,10 @@ export function ClientList() {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {clients.map((client) => (
                         <ClientCard
-                            key={client.id}
+                            key={client.client}
                             client={client}
                             onDelete={() =>
-                                deleteClient(activeRealm.id, client.id)
+                                deleteClient(activeRealm.id, client.client)
                             }
                         />
                     ))}

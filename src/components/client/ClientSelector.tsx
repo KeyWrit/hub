@@ -32,13 +32,13 @@ export function ClientSelector({
     return (
         <ul className="space-y-1">
             {clients.map((client) => {
-                const isSelected = selectedClientId === client.id;
+                const isSelected = selectedClientId === client.client;
 
                 return (
-                    <li key={client.id}>
+                    <li key={client.client}>
                         <Button
                             variant={isSelected ? "default" : "ghost"}
-                            onClick={() => onSelectClient(client.id)}
+                            onClick={() => onSelectClient(client.client)}
                             className={cn(
                                 "h-auto w-full justify-start py-2",
                                 !isSelected && "text-foreground",

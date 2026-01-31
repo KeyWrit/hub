@@ -57,7 +57,7 @@ export function ClientForm({
 
         // Check for duplicate client ID (only if creating new or changing ID)
         if (!isEditing || client.trim() !== editClient.client) {
-            const existingClient = Object.values(activeRealm.clients).find(
+            const existingClient = activeRealm.clients.find(
                 (c) => c.client === client.trim(),
             );
             if (existingClient) {
@@ -67,13 +67,12 @@ export function ClientForm({
         }
 
         if (isEditing) {
-            updateClient(activeRealm.id, editClient.id, {
+            updateClient(activeRealm.id, editClient.client, {
                 client: client.trim(),
                 label: label.trim() || undefined,
             });
         } else {
             const newClient: Client = {
-                id: crypto.randomUUID(),
                 client: client.trim(),
                 label: label.trim() || undefined,
                 createdAt: Date.now(),
