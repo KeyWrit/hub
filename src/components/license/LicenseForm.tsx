@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useRealms } from "@/hooks/useRealms";
 import { createLicense } from "@/lib/license";
+import { sanitizeIdentifier } from "@/lib/utils";
 
 interface LicenseFormProps {
     open: boolean;
@@ -131,9 +132,15 @@ export function LicenseForm({ open, onOpenChange }: LicenseFormProps) {
                         <Input
                             id="client"
                             value={client}
-                            onChange={(e) => setClient(e.target.value)}
-                            placeholder="client-id or organization-id"
+                            onChange={(e) =>
+                                setClient(sanitizeIdentifier(e.target.value))
+                            }
+                            placeholder="client-id"
                         />
+                        <p className="text-xs text-muted-foreground">
+                            Lowercase letters, numbers, dashes, and underscores
+                            only
+                        </p>
                     </div>
 
                     <div className="space-y-2">

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRealms } from "@/hooks/useRealms";
 import type { Realm } from "@/lib/types";
+import { sanitizeIdentifier } from "@/lib/utils";
 
 interface RealmFormProps {
     open: boolean;
@@ -78,10 +79,16 @@ export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
                             <Input
                                 id="name"
                                 value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="My Application"
+                                onChange={(e) =>
+                                    setName(sanitizeIdentifier(e.target.value))
+                                }
+                                placeholder="my-application"
                                 required
                             />
+                            <p className="text-xs text-muted-foreground">
+                                Lowercase letters, numbers, dashes, and
+                                underscores only
+                            </p>
                         </div>
 
                         <div className="grid gap-2">
