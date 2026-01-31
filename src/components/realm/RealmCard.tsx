@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useRealms } from "@/hooks/useRealms";
+import { downloadJson } from "@/lib/utils";
 import { ExportDialog } from "./ExportDialog";
 import { RealmForm } from "./RealmForm";
 
 export function RealmCard() {
-    const { activeRealm, deleteRealm } = useRealms();
+    const { activeRealm, deleteRealm, exportRealm } = useRealms();
     const [showEditForm, setShowEditForm] = useState(false);
     const [showExportDialog, setShowExportDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [deleteExported, setDeleteExported] = useState(false);
 
     if (!activeRealm) {
         return null;
@@ -162,21 +164,43 @@ export function RealmCard() {
 
             <AlertDialog
                 open={showDeleteDialog}
-                onOpenChange={setShowDeleteDialog}
+                onOpenChange={(open) => {
+                    setShowDeleteDialog(open);
+                    if (!open) setDeleteExported(false);
+                }}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Realm</AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to delete "{activeRealm.id}"?
-                            This action cannot be undone. Make sure to export
-                            your keys first if you need to preserve them.
+                            This action cannot be undone. You must export your
+                            realm before deleting.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                const exportData = exportRealm(
+                                    activeRealm.id,
+                                    true,
+                                );
+                                downloadJson(
+                                    exportData,
+                                    `${activeRealm.id}-realm.json`,
+                                );
+                                setDeleteExported(true);
+                            }}
+                            disabled={deleteExported}
+                        >
+                            <Download className="mr-1.5 h-4 w-4" />
+                            Export
+                        </Button>
                         <AlertDialogAction
                             onClick={handleDelete}
+                            disabled={!deleteExported}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             Delete

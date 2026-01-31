@@ -16,6 +16,7 @@ import type {
     Realm,
     RealmDefaults,
 } from "@/lib/types";
+import { sortByLabel } from "@/lib/utils";
 
 type RealmAction =
     | { type: "LOAD_SUCCESS"; payload: KeyWritHubStorage }
@@ -514,11 +515,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
           ) ?? null)
         : null;
 
-    const realms = [...state.storage.realms].sort((a, b) => {
-        const aName = (a.label || a.id).toLowerCase();
-        const bName = (b.label || b.id).toLowerCase();
-        return aName.localeCompare(bName);
-    });
+    const realms = [...state.storage.realms].sort(sortByLabel);
 
     const value: RealmContextValue = {
         activeRealm,

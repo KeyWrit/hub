@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRealms } from "@/hooks/useRealms";
+import { sortByLabel } from "@/lib/utils";
 import { LicenseList } from "./LicenseList";
 
 export function LicenseSection() {
@@ -32,11 +33,7 @@ export function LicenseSection() {
 
     if (!activeRealm) return null;
 
-    const allClients = [...activeRealm.clients].sort((a, b) => {
-        const aName = (a.label || a.id).toLowerCase();
-        const bName = (b.label || b.id).toLowerCase();
-        return aName.localeCompare(bName);
-    });
+    const allClients = [...activeRealm.clients].sort(sortByLabel);
 
     const filteredClients = search.trim()
         ? allClients.filter((client) => {

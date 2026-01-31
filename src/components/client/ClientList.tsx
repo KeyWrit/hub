@@ -2,6 +2,7 @@ import { Plus, Users } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRealms } from "@/hooks/useRealms";
+import { sortByLabel } from "@/lib/utils";
 import { ClientCard } from "./ClientCard";
 import { ClientForm } from "./ClientForm";
 
@@ -13,11 +14,7 @@ export function ClientList() {
         return null;
     }
 
-    const clients = [...activeRealm.clients].sort((a, b) => {
-        const aName = (a.label || a.id).toLowerCase();
-        const bName = (b.label || b.id).toLowerCase();
-        return aName.localeCompare(bName);
-    });
+    const clients = [...activeRealm.clients].sort(sortByLabel);
 
     return (
         <div className="space-y-4">

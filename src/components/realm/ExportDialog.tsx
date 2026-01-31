@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useRealms } from "@/hooks/useRealms";
+import { downloadJson } from "@/lib/utils";
 
 interface ExportDialogProps {
     open: boolean;
@@ -39,15 +40,7 @@ export function ExportDialog({
     };
 
     const handleDownload = () => {
-        const blob = new Blob([exportDataFull], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${realm.id}-realm.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        downloadJson(exportDataFull, `${realm.id}-realm.json`);
     };
 
     return (
