@@ -1,0 +1,169 @@
+import { Copy, Download, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { useRealms } from "@/hooks/useRealms";
+import { ExportDialog } from "./ExportDialog";
+import { RealmForm } from "./RealmForm";
+
+export function RealmCard() {
+    const { activeRealm, deleteRealm } = useRealms();
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [showExportDialog, setShowExportDialog] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    if (!activeRealm) {
+        return (
+            <div className="flex h-full items-center justify-center">
+                <p className="text-muted-foreground">
+                    Select a realm or create a new one to get started.
+                </p>
+            </div>
+        );
+    }
+
+    const handleCopyPublicKey = async () => {
+        await navigator.clipboard.writeText(activeRealm.keyPair.publicKeyHex);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleDelete = () => {
+        deleteRealm(activeRealm.id);
+        setShowDeleteDialog(false);
+    };
+
+    const createdDate = new Date(activeRealm.createdAt).toLocaleDateString();
+
+    return (
+        <div className="p-6">
+            <Card>
+                <CardHeader>
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <CardTitle>{activeRealm.name}</CardTitle>
+                            {activeRealm.description && (
+                                <CardDescription className="mt-1">
+                                    {activeRealm.description}
+                                </CardDescription>
+                            )}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowExportDialog(true)}
+                            >
+                                <Download className="mr-1.5 h-4 w-4" />
+                                Export
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowEditForm(true)}
+                            >
+                                <Pencil className="mr-1.5 h-4 w-4" />
+                                Edit
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowDeleteDialog(true)}
+                            >
+                                <Trash2 className="mr-1.5 h-4 w-4" />
+                                Delete
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                    <div>
+                        <h4 className="mb-2 text-sm font-medium">
+                            Public Key (Hex)
+                        </h4>
+                        <div className="flex items-center gap-2">
+                            <code className="flex-1 rounded bg-muted px-3 py-2 font-mono text-xs break-all">
+                                {activeRealm.keyPair.publicKeyHex}
+                            </code>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleCopyPublicKey}
+                            >
+                                <Copy className="h-4 w-4" />
+                                <span className="sr-only">Copy</span>
+                            </Button>
+                        </div>
+                        {copied && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Copied to clipboard
+                            </p>
+                        )}
+                    </div>
+
+                    <Separator />
+
+                    <div className="text-sm text-muted-foreground">
+                        Created: {createdDate}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <RealmForm
+                open={showEditForm}
+                onOpenChange={setShowEditForm}
+                realm={activeRealm}
+            />
+
+            <ExportDialog
+                open={showExportDialog}
+                onOpenChange={setShowExportDialog}
+                realmId={activeRealm.id}
+            />
+
+            <AlertDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Realm</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete "{activeRealm.name}
+                            "? This action cannot be undone. Make sure to export
+                            your keys first if you need to preserve them.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+    );
+}

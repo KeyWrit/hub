@@ -1,15 +1,21 @@
+import { Header } from "@/components/layout/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { RealmCard } from "@/components/realm/RealmCard";
+import { RealmProvider } from "@/context/RealmContext";
+
 function App() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-            <div className="text-center">
-                <h1 className="text-4xl font-bold text-foreground">
-                    KeyWrit Hub
-                </h1>
-                <p className="mt-4 text-muted-foreground">
-                    JWT License Token Generator
-                </p>
+        <RealmProvider>
+            <div className="flex h-screen flex-col bg-background">
+                <Header />
+                <div className="flex flex-1 overflow-hidden">
+                    <Sidebar />
+                    <main className="flex-1 overflow-auto">
+                        <RealmCard />
+                    </main>
+                </div>
             </div>
-        </div>
+        </RealmProvider>
     );
 }
 
