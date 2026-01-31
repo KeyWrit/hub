@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
+import { ClientCombobox } from "@/components/client/ClientCombobox";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -22,7 +23,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useRealms } from "@/hooks/useRealms";
 import { createLicense } from "@/lib/license";
-import { sanitizeIdentifier } from "@/lib/utils";
 
 interface LicenseFormProps {
     open: boolean;
@@ -129,18 +129,7 @@ export function LicenseForm({ open, onOpenChange }: LicenseFormProps) {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="client">Client *</Label>
-                        <Input
-                            id="client"
-                            value={client}
-                            onChange={(e) =>
-                                setClient(sanitizeIdentifier(e.target.value))
-                            }
-                            placeholder="client-id"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            Lowercase letters, numbers, dashes, and underscores
-                            only
-                        </p>
+                        <ClientCombobox value={client} onChange={setClient} />
                     </div>
 
                     <div className="space-y-2">

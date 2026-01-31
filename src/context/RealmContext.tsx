@@ -9,6 +9,7 @@ import { generateKeyPair } from "@/lib/crypto/keys";
 import { CURRENT_STORAGE_VERSION } from "@/lib/storage/migrations";
 import { loadStorage, saveStorage } from "@/lib/storage/storage";
 import type {
+    Client,
     ExportedRealm,
     KeyWritHubStorage,
     License,
@@ -23,6 +24,19 @@ type RealmAction =
     | { type: "UPDATE_REALM"; payload: { id: string; updates: Partial<Realm> } }
     | { type: "DELETE_REALM"; payload: string }
     | { type: "IMPORT_REALM"; payload: Realm }
+    | { type: "ADD_CLIENT"; payload: { realmId: string; client: Client } }
+    | {
+          type: "UPDATE_CLIENT";
+          payload: {
+              realmId: string;
+              clientId: string;
+              updates: Partial<Client>;
+          };
+      }
+    | {
+          type: "DELETE_CLIENT";
+          payload: { realmId: string; clientId: string };
+      }
     | { type: "ADD_LICENSE"; payload: { realmId: string; license: License } }
     | {
           type: "DELETE_LICENSE";
@@ -117,6 +131,82 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                 },
             };
 
+        case "ADD_CLIENT": {
+            const realm = state.storage.realms[action.payload.realmId];
+            if (!realm) return state;
+
+            return {
+                ...state,
+                storage: {
+                    ...state.storage,
+                    realms: {
+                        ...state.storage.realms,
+                        [action.payload.realmId]: {
+                            ...realm,
+                            clients: {
+                                ...realm.clients,
+                                [action.payload.client.id]:
+                                    action.payload.client,
+                            },
+                            updatedAt: Date.now(),
+                        },
+                    },
+                },
+            };
+        }
+
+        case "UPDATE_CLIENT": {
+            const realm = state.storage.realms[action.payload.realmId];
+            if (!realm) return state;
+
+            const existingClient = realm.clients[action.payload.clientId];
+            if (!existingClient) return state;
+
+            return {
+                ...state,
+                storage: {
+                    ...state.storage,
+                    realms: {
+                        ...state.storage.realms,
+                        [action.payload.realmId]: {
+                            ...realm,
+                            clients: {
+                                ...realm.clients,
+                                [action.payload.clientId]: {
+                                    ...existingClient,
+                                    ...action.payload.updates,
+                                },
+                            },
+                            updatedAt: Date.now(),
+                        },
+                    },
+                },
+            };
+        }
+
+        case "DELETE_CLIENT": {
+            const realm = state.storage.realms[action.payload.realmId];
+            if (!realm) return state;
+
+            const { [action.payload.clientId]: _, ...remainingClients } =
+                realm.clients;
+
+            return {
+                ...state,
+                storage: {
+                    ...state.storage,
+                    realms: {
+                        ...state.storage.realms,
+                        [action.payload.realmId]: {
+                            ...realm,
+                            clients: remainingClients,
+                            updatedAt: Date.now(),
+                        },
+                    },
+                },
+            };
+        }
+
         case "ADD_LICENSE": {
             const realm = state.storage.realms[action.payload.realmId];
             if (!realm) return state;
@@ -180,6 +270,13 @@ export interface RealmContextValue {
     exportRealm: (id: string, includeLicenses?: boolean) => string;
     importRealm: (json: string) => Promise<Realm>;
     updateRealmDefaults: (id: string, defaults: Partial<RealmDefaults>) => void;
+    addClient: (realmId: string, client: Client) => void;
+    updateClient: (
+        realmId: string,
+        clientId: string,
+        updates: Partial<Client>,
+    ) => void;
+    deleteClient: (realmId: string, clientId: string) => void;
     addLicense: (realmId: string, license: License) => void;
     deleteLicense: (realmId: string, licenseId: string) => void;
 }
@@ -201,11 +298,12 @@ export function RealmProvider({ children }: { children: ReactNode }) {
     // Load from localStorage on mount
     useEffect(() => {
         const storage = loadStorage();
-        // Normalize realms to ensure they have licenses and revocations
+        // Normalize realms to ensure they have clients, licenses and revocations
         const normalizedRealms: Record<string, Realm> = {};
         for (const [id, realm] of Object.entries(storage.realms)) {
             normalizedRealms[id] = {
                 ...realm,
+                clients: realm.clients ?? {},
                 licenses: realm.licenses ?? {},
                 revocations: realm.revocations ?? [],
             };
@@ -234,6 +332,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 description,
                 keyPair,
                 defaults: {},
+                clients: {},
                 licenses: {},
                 revocations: [],
                 createdAt: now,
@@ -279,6 +378,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                     publicKeyHex: realm.keyPair.publicKeyHex,
                     defaults: realm.defaults,
                     ...(includeLicenses && {
+                        clients: realm.clients,
                         licenses: realm.licenses,
                         revocations: realm.revocations,
                     }),
@@ -311,6 +411,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 createdAt: parsed.exportedAt,
             },
             defaults: parsed.realm.defaults,
+            clients: parsed.realm.clients ?? {},
             licenses: parsed.realm.licenses ?? {},
             revocations: parsed.realm.revocations ?? [],
             createdAt: now,
@@ -338,6 +439,27 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         },
         [state.storage.realms],
     );
+
+    const addClient = useCallback((realmId: string, client: Client) => {
+        dispatch({ type: "ADD_CLIENT", payload: { realmId, client } });
+    }, []);
+
+    const updateClient = useCallback(
+        (realmId: string, clientId: string, updates: Partial<Client>) => {
+            dispatch({
+                type: "UPDATE_CLIENT",
+                payload: { realmId, clientId, updates },
+            });
+        },
+        [],
+    );
+
+    const deleteClient = useCallback((realmId: string, clientId: string) => {
+        dispatch({
+            type: "DELETE_CLIENT",
+            payload: { realmId, clientId },
+        });
+    }, []);
 
     const addLicense = useCallback((realmId: string, license: License) => {
         dispatch({ type: "ADD_LICENSE", payload: { realmId, license } });
@@ -369,6 +491,9 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         exportRealm,
         importRealm,
         updateRealmDefaults,
+        addClient,
+        updateClient,
+        deleteClient,
         addLicense,
         deleteLicense,
     };

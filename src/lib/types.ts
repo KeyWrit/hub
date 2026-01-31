@@ -1,5 +1,12 @@
 // KeyWrit Hub Storage Types
 
+export interface Client {
+    id: string;
+    client: string;
+    label?: string;
+    createdAt: number;
+}
+
 export interface KeyPair {
     privateKey: JsonWebKey;
     publicKey: JsonWebKey;
@@ -46,6 +53,7 @@ export interface Realm {
     description?: string;
     keyPair: KeyPair;
     defaults: RealmDefaults;
+    clients: Record<string, Client>;
     licenses: Record<string, License>;
     revocations: RevocationEntry[];
     createdAt: number;
@@ -68,6 +76,7 @@ export interface ExportedRealm {
         publicKey: JsonWebKey;
         publicKeyHex: string;
         defaults: RealmDefaults;
+        clients?: Record<string, Client>;
         licenses?: Record<string, License>;
         revocations?: RevocationEntry[];
     };
