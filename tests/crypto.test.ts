@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { generateEd25519KeyPair, importKeyPair } from "@/lib/crypto/keys";
+import { generateKeyPair, importKeyPair } from "@/lib/crypto/keys";
 
-describe("Ed25519 key generation", () => {
+describe("key pair generation", () => {
     it("generates a valid key pair", async () => {
-        const keyPair = await generateEd25519KeyPair();
+        const keyPair = await generateKeyPair();
 
         expect(keyPair.privateKey).toBeDefined();
         expect(keyPair.publicKey).toBeDefined();
@@ -12,22 +12,22 @@ describe("Ed25519 key generation", () => {
     });
 
     it("generates hex public key of correct length", async () => {
-        const keyPair = await generateEd25519KeyPair();
+        const keyPair = await generateKeyPair();
 
-        // Ed25519 public key is 32 bytes = 64 hex characters
+        // Current implementation uses Ed25519: 32 bytes = 64 hex characters
         expect(keyPair.publicKeyHex).toHaveLength(64);
         expect(keyPair.publicKeyHex).toMatch(/^[0-9a-f]+$/);
     });
 
     it("generates unique keys each time", async () => {
-        const keyPair1 = await generateEd25519KeyPair();
-        const keyPair2 = await generateEd25519KeyPair();
+        const keyPair1 = await generateKeyPair();
+        const keyPair2 = await generateKeyPair();
 
         expect(keyPair1.publicKeyHex).not.toBe(keyPair2.publicKeyHex);
     });
 
     it("can import generated keys", async () => {
-        const keyPair = await generateEd25519KeyPair();
+        const keyPair = await generateKeyPair();
         const imported = await importKeyPair(
             keyPair.privateKey,
             keyPair.publicKey,
@@ -38,18 +38,16 @@ describe("Ed25519 key generation", () => {
     });
 
     it("private key has correct JWK format", async () => {
-        const keyPair = await generateEd25519KeyPair();
+        const keyPair = await generateKeyPair();
 
         expect(keyPair.privateKey.kty).toBe("OKP");
-        expect(keyPair.privateKey.crv).toBe("Ed25519");
         expect(keyPair.privateKey.d).toBeDefined();
     });
 
     it("public key has correct JWK format", async () => {
-        const keyPair = await generateEd25519KeyPair();
+        const keyPair = await generateKeyPair();
 
         expect(keyPair.publicKey.kty).toBe("OKP");
-        expect(keyPair.publicKey.crv).toBe("Ed25519");
         expect(keyPair.publicKey.x).toBeDefined();
         expect(keyPair.publicKey.d).toBeUndefined();
     });

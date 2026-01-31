@@ -1,6 +1,6 @@
 // KeyWrit Hub Storage Types
 
-export interface Ed25519KeyPair {
+export interface KeyPair {
     privateKey: JsonWebKey;
     publicKey: JsonWebKey;
     publicKeyHex: string;
@@ -21,7 +21,7 @@ export interface Realm {
     id: string;
     name: string;
     description?: string;
-    keyPair: Ed25519KeyPair;
+    keyPair: KeyPair;
     defaults: RealmDefaults;
     createdAt: number;
     updatedAt: number;

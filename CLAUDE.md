@@ -10,14 +10,30 @@ Use `bun` to run any command.
 
 Always run `bun run check` after making changes. This runs linting (Biome), type checking, and tests.
 
+## KeyWrit Library
+
+KeyWrit is **signing-method agnostic**. It uses public key infrastructure (PKI) for license validation but does not depend on any specific signing algorithm. The current implementation uses Ed25519 for key generation, but this is an implementation detail, not a library requirement. Do not document or describe KeyWrit as being tied to Ed25519 or any specific algorithm.
+
 ## Architecture
 
 React web application for generating JWT license tokens.
 
-- **src/App.tsx** - Main application component
+- **src/App.tsx** - Main application with layout
 - **src/lib/** - Utility functions
+  - `types.ts` - TypeScript interfaces (Realm, KeyPair, Storage)
+  - `crypto/keys.ts` - Key pair generation using jose
+  - `storage/storage.ts` - localStorage operations
+  - `storage/migrations.ts` - Schema versioning
   - `jwt.ts` - JWT generation using jose library
   - `utils.ts` - Helper functions (cn for Tailwind class merging)
+- **src/context/** - React Context providers
+  - `RealmContext.tsx` - Realm state management
+- **src/hooks/** - Custom React hooks
+  - `useRealms.ts` - Hook for realm context
+- **src/components/** - UI components
+  - `layout/` - Header, Sidebar
+  - `realm/` - RealmList, RealmCard, RealmForm, ExportDialog, ImportDialog
+  - `ui/` - shadcn/ui components
 
 ## Testing
 

@@ -5,7 +5,7 @@ import {
     useEffect,
     useReducer,
 } from "react";
-import { generateEd25519KeyPair } from "@/lib/crypto/keys";
+import { generateKeyPair } from "@/lib/crypto/keys";
 import { CURRENT_STORAGE_VERSION } from "@/lib/storage/migrations";
 import { loadStorage, saveStorage } from "@/lib/storage/storage";
 import type {
@@ -158,7 +158,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
 
     const createRealm = useCallback(
         async (name: string, description?: string): Promise<Realm> => {
-            const keyPair = await generateEd25519KeyPair();
+            const keyPair = await generateKeyPair();
             const now = Date.now();
 
             const realm: Realm = {

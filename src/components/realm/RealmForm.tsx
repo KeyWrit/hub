@@ -68,7 +68,7 @@ export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
                         <DialogDescription>
                             {isEditing
                                 ? "Update your realm details."
-                                : "Create a new realm with a fresh Ed25519 key pair."}
+                                : "Create a new realm with a fresh signing key pair."}
                         </DialogDescription>
                     </DialogHeader>
 

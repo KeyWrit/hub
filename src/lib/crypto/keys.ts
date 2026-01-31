@@ -1,7 +1,11 @@
 import * as jose from "jose";
-import type { Ed25519KeyPair } from "@/lib/types";
+import type { KeyPair } from "@/lib/types";
 
-export async function generateEd25519KeyPair(): Promise<Ed25519KeyPair> {
+/**
+ * Generates an asymmetric key pair for JWT signing.
+ * Currently uses Ed25519 (EdDSA) but KeyWrit is signing-method agnostic.
+ */
+export async function generateKeyPair(): Promise<KeyPair> {
     const { publicKey, privateKey } = await jose.generateKeyPair("EdDSA", {
         crv: "Ed25519",
         extractable: true,
@@ -33,7 +37,7 @@ function spkiToHex(spki: string): string {
         bytes[i] = binary.charCodeAt(i);
     }
 
-    // Ed25519 SPKI has a 12-byte header, the raw public key is the last 32 bytes
+    // SPKI header varies by algorithm; for Ed25519 the raw key is the last 32 bytes
     const rawKey = bytes.slice(-32);
     return Array.from(rawKey)
         .map((b) => b.toString(16).padStart(2, "0"))
