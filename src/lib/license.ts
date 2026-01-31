@@ -3,6 +3,7 @@ import type { License, Realm } from "@/lib/types";
 
 export const KEYWRIT_VERSION = 1;
 export const KEYWRIT_ISSUER = "keywrit";
+export const KEYWRIT_TYPE = "KWL";
 
 export interface LicenseParams {
     label?: string;
@@ -58,7 +59,11 @@ export async function createLicense(
     if (params.nbf) payload.nbf = params.nbf;
 
     const token = await new jose.SignJWT(payload)
-        .setProtectedHeader({ alg: "EdDSA", typ: "JWT", kwv: KEYWRIT_VERSION })
+        .setProtectedHeader({
+            alg: "EdDSA",
+            typ: KEYWRIT_TYPE,
+            kwv: KEYWRIT_VERSION,
+        })
         .setIssuedAt(now)
         .sign(privateKey);
 
