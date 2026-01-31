@@ -65,11 +65,11 @@ export function ExportDialog({
                         value={exportData}
                         readOnly
                         rows={15}
-                        className="font-mono text-xs"
+                        className="font-mono text-xs break-all"
                     />
                 </div>
 
-                <DialogFooter className="gap-2 sm:gap-0">
+                <DialogFooter className="gap-2">
                     <Button variant="outline" onClick={handleCopy}>
                         <Copy className="mr-1.5 h-4 w-4" />
                         {copied ? "Copied!" : "Copy"}

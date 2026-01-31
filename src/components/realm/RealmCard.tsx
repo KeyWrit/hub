@@ -46,6 +46,20 @@ export function RealmCard() {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleDownloadPublicKey = () => {
+        const blob = new Blob([activeRealm.keyPair.publicKeyHex], {
+            type: "text/plain",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${activeRealm.name.toLowerCase().replace(/\s+/g, "-")}.pub`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     const handleDelete = () => {
         deleteRealm(activeRealm.id);
         setShowDeleteDialog(false);
@@ -108,9 +122,19 @@ export function RealmCard() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={handleCopyPublicKey}
+                                title="Copy to clipboard"
                             >
                                 <Copy className="h-4 w-4" />
                                 <span className="sr-only">Copy</span>
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleDownloadPublicKey}
+                                title="Download public key"
+                            >
+                                <Download className="h-4 w-4" />
+                                <span className="sr-only">Download</span>
                             </Button>
                         </div>
                         {copied && (
