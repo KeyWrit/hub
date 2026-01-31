@@ -31,12 +31,48 @@ bun run check         # Run all checks (lint + typecheck + tests)
 
 ```
 src/
-├── App.tsx            # Main application component
-├── main.tsx           # Entry point
-├── index.css          # Global styles (Tailwind)
+├── App.tsx              # Main application component
+├── main.tsx             # Entry point
+├── index.css            # Global styles (Tailwind)
+├── components/
+│   ├── client/          # Client management components
+│   │   ├── ClientCard.tsx
+│   │   ├── ClientForm.tsx
+│   │   ├── ClientList.tsx
+│   │   ├── ClientSelector.tsx
+│   │   └── ManageClientDialog.tsx
+│   ├── layout/          # Layout components
+│   │   ├── Header.tsx
+│   │   ├── Sidebar.tsx
+│   │   └── ThemeToggle.tsx
+│   ├── license/         # License management components
+│   │   ├── LicenseCard.tsx
+│   │   ├── LicenseForm.tsx
+│   │   ├── LicenseList.tsx
+│   │   └── LicenseSection.tsx
+│   ├── realm/           # Realm management components
+│   │   ├── ExportDialog.tsx
+│   │   ├── ImportDialog.tsx
+│   │   ├── RealmCard.tsx
+│   │   ├── RealmForm.tsx
+│   │   └── RealmList.tsx
+│   └── ui/              # shadcn/ui components
+├── context/
+│   ├── RealmContext.tsx # Realm state management
+│   └── ThemeContext.tsx # Theme state management
+├── hooks/
+│   ├── useRealms.ts     # Hook for realm context
+│   └── useTheme.ts      # Hook for theme context
 └── lib/
-    ├── jwt.ts         # JWT generation with jose
-    └── utils.ts       # Utility functions (cn helper)
+    ├── crypto/
+    │   └── keys.ts      # Key pair generation with jose
+    ├── storage/
+    │   ├── migrations.ts # Schema versioning
+    │   └── storage.ts   # localStorage operations
+    ├── jwt.ts           # JWT generation with jose
+    ├── license.ts       # License utilities
+    ├── types.ts         # TypeScript interfaces
+    └── utils.ts         # Utility functions (cn helper)
 ```
 
 ## Code Style

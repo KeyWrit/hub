@@ -20,19 +20,24 @@ React web application for generating JWT license tokens.
 
 - **src/App.tsx** - Main application with layout
 - **src/lib/** - Utility functions
-  - `types.ts` - TypeScript interfaces (Realm, KeyPair, Storage)
+  - `types.ts` - TypeScript interfaces (Realm, Client, License, KeyPair, Storage)
   - `crypto/keys.ts` - Key pair generation using jose
   - `storage/storage.ts` - localStorage operations
   - `storage/migrations.ts` - Schema versioning
   - `jwt.ts` - JWT generation using jose library
+  - `license.ts` - License utilities
   - `utils.ts` - Helper functions (cn for Tailwind class merging)
 - **src/context/** - React Context providers
   - `RealmContext.tsx` - Realm state management
+  - `ThemeContext.tsx` - Theme state management
 - **src/hooks/** - Custom React hooks
   - `useRealms.ts` - Hook for realm context
+  - `useTheme.ts` - Hook for theme context
 - **src/components/** - UI components
-  - `layout/` - Header, Sidebar
+  - `layout/` - Header, Sidebar, ThemeToggle
   - `realm/` - RealmList, RealmCard, RealmForm, ExportDialog, ImportDialog
+  - `client/` - ClientList, ClientCard, ClientForm, ClientSelector, ManageClientDialog
+  - `license/` - LicenseList, LicenseCard, LicenseForm, LicenseSection
   - `ui/` - shadcn/ui components
 
 ## Testing
