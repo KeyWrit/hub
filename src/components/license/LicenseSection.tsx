@@ -33,8 +33,8 @@ export function LicenseSection() {
     if (!activeRealm) return null;
 
     const allClients = [...activeRealm.clients].sort((a, b) => {
-        const aName = (a.label || a.client).toLowerCase();
-        const bName = (b.label || b.client).toLowerCase();
+        const aName = (a.label || a.id).toLowerCase();
+        const bName = (b.label || b.id).toLowerCase();
         return aName.localeCompare(bName);
     });
 
@@ -42,14 +42,14 @@ export function LicenseSection() {
         ? allClients.filter((client) => {
               const query = search.toLowerCase();
               return (
-                  client.client.toLowerCase().includes(query) ||
+                  client.id.toLowerCase().includes(query) ||
                   (client.label?.toLowerCase().includes(query) ?? false)
               );
           })
         : allClients;
 
     const selectedClient = selectedClientId
-        ? activeRealm.clients.find((c) => c.client === selectedClientId)
+        ? activeRealm.clients.find((c) => c.id === selectedClientId)
         : null;
 
     const clientPanel = (
@@ -89,7 +89,7 @@ export function LicenseSection() {
     const licensePanel = (
         <LicenseList
             clientId={selectedClientId ?? undefined}
-            clientSub={selectedClient?.client}
+            clientSub={selectedClient?.id}
         />
     );
 

@@ -30,12 +30,12 @@ export function LicenseList({ clientId, clientSub }: LicenseListProps) {
         );
     }
 
-    const client = activeRealm.clients.find((c) => c.client === clientId);
+    const client = activeRealm.clients.find((c) => c.id === clientId);
     if (!client) return null;
 
     // Filter licenses by the selected client's sub
     const licenses = activeRealm.licenses
-        .filter((license) => license.sub === client.client)
+        .filter((license) => license.sub === client.id)
         .sort((a, b) => b.createdAt - a.createdAt);
 
     return (
@@ -45,7 +45,7 @@ export function LicenseList({ clientId, clientSub }: LicenseListProps) {
                     <h3 className="text-sm font-medium">
                         {licenses.length} License
                         {licenses.length !== 1 ? "s" : ""} for{" "}
-                        {client.label || client.client}
+                        {client.label || client.id}
                     </h3>
                     <div className="flex gap-2">
                         <Button
@@ -86,10 +86,7 @@ export function LicenseList({ clientId, clientSub }: LicenseListProps) {
                                 key={license.jti}
                                 license={license}
                                 onDelete={() =>
-                                    deleteLicense(
-                                        activeRealm.realm,
-                                        license.jti,
-                                    )
+                                    deleteLicense(activeRealm.id, license.jti)
                                 }
                             />
                         ))}

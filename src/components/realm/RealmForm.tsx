@@ -31,7 +31,7 @@ export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
 
     useEffect(() => {
         if (open) {
-            setRealmId(realm?.realm ?? "");
+            setRealmId(realm?.id ?? "");
             setLabel(realm?.label ?? "");
             setError(null);
         }
@@ -43,10 +43,8 @@ export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
         if (!realmId.trim()) return;
 
         // Check for duplicate realm ID (only if creating new or changing ID)
-        if (!isEditing || realmId.trim() !== realm.realm) {
-            const existingRealm = realms.find(
-                (r) => r.realm === realmId.trim(),
-            );
+        if (!isEditing || realmId.trim() !== realm.id) {
+            const existingRealm = realms.find((r) => r.id === realmId.trim());
             if (existingRealm) {
                 setError("A realm with this ID already exists");
                 return;
@@ -57,7 +55,7 @@ export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
 
         try {
             if (isEditing) {
-                updateRealm(realm.realm, {
+                updateRealm(realm.id, {
                     label: label.trim() || undefined,
                 });
             } else {

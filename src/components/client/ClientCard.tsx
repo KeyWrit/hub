@@ -26,12 +26,12 @@ export function ClientCard({ client, onDelete }: ClientCardProps) {
     const [showEditDialog, setShowEditDialog] = useState(false);
 
     const handleCopy = async () => {
-        await navigator.clipboard.writeText(client.client);
+        await navigator.clipboard.writeText(client.id);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const displayName = client.label || client.client;
+    const displayName = client.label || client.id;
     const createdDate = new Date(client.createdAt).toLocaleDateString();
 
     return (
@@ -45,7 +45,7 @@ export function ClientCard({ client, onDelete }: ClientCardProps) {
                             </CardTitle>
                             {client.label && (
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    ID: {client.client}
+                                    ID: {client.id}
                                 </p>
                             )}
                         </div>

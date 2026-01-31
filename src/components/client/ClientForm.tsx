@@ -26,14 +26,14 @@ export function ClientForm({
     editClient,
 }: ClientFormProps) {
     const { activeRealm, addClient, updateClient } = useRealms();
-    const [client, setClient] = useState(editClient?.client ?? "");
+    const [clientId, setClientId] = useState(editClient?.id ?? "");
     const [label, setLabel] = useState(editClient?.label ?? "");
     const [error, setError] = useState<string | null>(null);
 
     const isEditing = !!editClient;
 
     const resetForm = () => {
-        setClient(editClient?.client ?? "");
+        setClientId(editClient?.id ?? "");
         setLabel(editClient?.label ?? "");
         setError(null);
     };
@@ -50,15 +50,15 @@ export function ClientForm({
 
         if (!activeRealm) return;
 
-        if (!client.trim()) {
+        if (!clientId.trim()) {
             setError("Client ID is required");
             return;
         }
 
         // Check for duplicate client ID (only if creating new or changing ID)
-        if (!isEditing || client.trim() !== editClient.client) {
+        if (!isEditing || clientId.trim() !== editClient.id) {
             const existingClient = activeRealm.clients.find(
-                (c) => c.client === client.trim(),
+                (c) => c.id === clientId.trim(),
             );
             if (existingClient) {
                 setError("A client with this ID already exists");
@@ -67,17 +67,17 @@ export function ClientForm({
         }
 
         if (isEditing) {
-            updateClient(activeRealm.realm, editClient.client, {
-                client: client.trim(),
+            updateClient(activeRealm.id, editClient.id, {
+                id: clientId.trim(),
                 label: label.trim() || undefined,
             });
         } else {
             const newClient: Client = {
-                client: client.trim(),
+                id: clientId.trim(),
                 label: label.trim() || undefined,
                 createdAt: Date.now(),
             };
-            addClient(activeRealm.realm, newClient);
+            addClient(activeRealm.id, newClient);
         }
 
         handleClose(false);
@@ -102,9 +102,9 @@ export function ClientForm({
                         <Label htmlFor="client">Client ID *</Label>
                         <Input
                             id="client"
-                            value={client}
+                            value={clientId}
                             onChange={(e) =>
-                                setClient(sanitizeIdentifier(e.target.value))
+                                setClientId(sanitizeIdentifier(e.target.value))
                             }
                             placeholder="client-id"
                         />

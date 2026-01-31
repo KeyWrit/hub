@@ -32,13 +32,13 @@ export function ClientSelector({
     return (
         <ul className="space-y-1">
             {clients.map((client) => {
-                const isSelected = selectedClientId === client.client;
+                const isSelected = selectedClientId === client.id;
 
                 return (
-                    <li key={client.client}>
+                    <li key={client.id}>
                         <Button
                             variant={isSelected ? "default" : "ghost"}
-                            onClick={() => onSelectClient(client.client)}
+                            onClick={() => onSelectClient(client.id)}
                             className={cn(
                                 "h-auto w-full justify-start py-2",
                                 !isSelected && "text-foreground",
@@ -46,7 +46,7 @@ export function ClientSelector({
                         >
                             <div className="flex flex-1 flex-col items-start gap-0.5 overflow-hidden">
                                 <span className="truncate text-left text-sm font-medium">
-                                    {client.label || client.client}
+                                    {client.label || client.id}
                                 </span>
                                 {client.label && (
                                     <span
@@ -57,7 +57,7 @@ export function ClientSelector({
                                                 : "text-muted-foreground",
                                         )}
                                     >
-                                        {client.client}
+                                        {client.id}
                                     </span>
                                 )}
                             </div>

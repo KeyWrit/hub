@@ -54,7 +54,7 @@ export function ManageClientDialog({
 
         if (!activeRealm) return;
 
-        updateClient(activeRealm.realm, client.client, {
+        updateClient(activeRealm.id, client.id, {
             label: label.trim() || undefined,
         });
 
@@ -82,7 +82,7 @@ export function ManageClientDialog({
                             <Label htmlFor="client-id">Client ID</Label>
                             <Input
                                 id="client-id"
-                                value={client.client}
+                                value={client.id}
                                 disabled
                                 className="bg-muted"
                             />
@@ -130,8 +130,8 @@ export function ManageClientDialog({
                         <AlertDialogTitle>Revoke Client?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This will invalidate all licenses issued to{" "}
-                            <span className="font-medium">{client.client}</span>
-                            . This action cannot be undone.
+                            <span className="font-medium">{client.id}</span>.
+                            This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

@@ -47,7 +47,7 @@ export function RealmCard() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${activeRealm.realm}.pub`;
+        a.download = `${activeRealm.id}.pub`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -55,7 +55,7 @@ export function RealmCard() {
     };
 
     const handleDelete = () => {
-        deleteRealm(activeRealm.realm);
+        deleteRealm(activeRealm.id);
         setShowDeleteDialog(false);
     };
 
@@ -68,11 +68,11 @@ export function RealmCard() {
                     <div className="flex items-start justify-between">
                         <div>
                             <CardTitle>
-                                {activeRealm.label || activeRealm.realm}
+                                {activeRealm.label || activeRealm.id}
                             </CardTitle>
                             {activeRealm.label && (
                                 <CardDescription className="mt-1">
-                                    {activeRealm.realm}
+                                    {activeRealm.id}
                                 </CardDescription>
                             )}
                         </div>
@@ -157,7 +157,7 @@ export function RealmCard() {
             <ExportDialog
                 open={showExportDialog}
                 onOpenChange={setShowExportDialog}
-                realmId={activeRealm.realm}
+                realmId={activeRealm.id}
             />
 
             <AlertDialog
@@ -168,8 +168,8 @@ export function RealmCard() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Realm</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{activeRealm.realm}
-                            "? This action cannot be undone. Make sure to export
+                            Are you sure you want to delete "{activeRealm.id}"?
+                            This action cannot be undone. Make sure to export
                             your keys first if you need to preserve them.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

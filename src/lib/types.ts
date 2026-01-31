@@ -1,7 +1,7 @@
 // KeyWrit Hub Storage Types
 
 export interface Client {
-    client: string;
+    id: string;
     label?: string;
     createdAt: number;
 }
@@ -39,7 +39,7 @@ export interface License {
 }
 
 export interface Realm {
-    realm: string;
+    id: string;
     label?: string;
     keyPair: KeyPair;
     defaults: RealmDefaults;
@@ -59,7 +59,7 @@ export interface ExportedRealm {
     exportVersion: 1;
     exportedAt: number;
     realm: {
-        realm: string;
+        id: string;
         label?: string;
         privateKey: JsonWebKey;
         publicKey: JsonWebKey;

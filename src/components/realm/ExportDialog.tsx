@@ -26,7 +26,7 @@ export function ExportDialog({
     const { exportRealm, realms } = useRealms();
     const [copied, setCopied] = useState(false);
 
-    const realm = realms.find((r) => r.realm === realmId);
+    const realm = realms.find((r) => r.id === realmId);
     if (!realm) return null;
 
     const exportDataBasic = exportRealm(realmId, false);
@@ -43,7 +43,7 @@ export function ExportDialog({
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${realm.realm}-realm.json`;
+        a.download = `${realm.id}-realm.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

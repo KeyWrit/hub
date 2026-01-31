@@ -14,8 +14,8 @@ export function ClientList() {
     }
 
     const clients = [...activeRealm.clients].sort((a, b) => {
-        const aName = (a.label || a.client).toLowerCase();
-        const bName = (b.label || b.client).toLowerCase();
+        const aName = (a.label || a.id).toLowerCase();
+        const bName = (b.label || b.id).toLowerCase();
         return aName.localeCompare(bName);
     });
 
@@ -43,10 +43,10 @@ export function ClientList() {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {clients.map((client) => (
                         <ClientCard
-                            key={client.client}
+                            key={client.id}
                             client={client}
                             onDelete={() =>
-                                deleteClient(activeRealm.realm, client.client)
+                                deleteClient(activeRealm.id, client.id)
                             }
                         />
                     ))}
