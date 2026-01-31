@@ -98,7 +98,7 @@ export function LicenseForm({ open, onOpenChange, client }: LicenseFormProps) {
                 nbf,
             });
 
-            addLicense(activeRealm.id, license);
+            addLicense(activeRealm.realm, license);
             handleClose(false);
         } catch (err) {
             setError(

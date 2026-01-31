@@ -47,7 +47,7 @@ export function RealmCard() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${activeRealm.name.toLowerCase().replace(/\s+/g, "-")}.pub`;
+        a.download = `${activeRealm.realm}.pub`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -55,7 +55,7 @@ export function RealmCard() {
     };
 
     const handleDelete = () => {
-        deleteRealm(activeRealm.id);
+        deleteRealm(activeRealm.realm);
         setShowDeleteDialog(false);
     };
 
@@ -67,10 +67,12 @@ export function RealmCard() {
                 <CardHeader>
                     <div className="flex items-start justify-between">
                         <div>
-                            <CardTitle>{activeRealm.name}</CardTitle>
-                            {activeRealm.description && (
+                            <CardTitle>
+                                {activeRealm.label || activeRealm.realm}
+                            </CardTitle>
+                            {activeRealm.label && (
                                 <CardDescription className="mt-1">
-                                    {activeRealm.description}
+                                    {activeRealm.realm}
                                 </CardDescription>
                             )}
                         </div>
@@ -155,7 +157,7 @@ export function RealmCard() {
             <ExportDialog
                 open={showExportDialog}
                 onOpenChange={setShowExportDialog}
-                realmId={activeRealm.id}
+                realmId={activeRealm.realm}
             />
 
             <AlertDialog
@@ -166,7 +168,7 @@ export function RealmCard() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Realm</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{activeRealm.name}
+                            Are you sure you want to delete "{activeRealm.realm}
                             "? This action cannot be undone. Make sure to export
                             your keys first if you need to preserve them.
                         </AlertDialogDescription>

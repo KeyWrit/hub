@@ -47,7 +47,7 @@ export async function createLicense(
         jti,
         sub,
         iss: KEYWRIT_ISSUER,
-        aud: realm.name,
+        aud: realm.realm,
     };
     if (kind) payload.kind = kind;
     if (flags && flags.length > 0) payload.flags = flags;
@@ -71,7 +71,7 @@ export async function createLicense(
         jti,
         sub,
         iss: KEYWRIT_ISSUER,
-        aud: realm.name,
+        aud: realm.realm,
         kind,
         flags,
         features,

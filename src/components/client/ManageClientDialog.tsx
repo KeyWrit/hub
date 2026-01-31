@@ -54,7 +54,7 @@ export function ManageClientDialog({
 
         if (!activeRealm) return;
 
-        updateClient(activeRealm.id, client.id, {
+        updateClient(activeRealm.realm, client.client, {
             label: label.trim() || undefined,
         });
 

@@ -21,31 +21,42 @@ type RealmAction =
     | { type: "LOAD_SUCCESS"; payload: KeyWritHubStorage }
     | { type: "SET_ACTIVE_REALM"; payload: string | null }
     | { type: "CREATE_REALM"; payload: Realm }
-    | { type: "UPDATE_REALM"; payload: { id: string; updates: Partial<Realm> } }
+    | {
+          type: "UPDATE_REALM";
+          payload: { realm: string; updates: Partial<Realm> };
+      }
     | { type: "DELETE_REALM"; payload: string }
     | { type: "IMPORT_REALM"; payload: Realm }
-    | { type: "ADD_CLIENT"; payload: { realmId: string; client: Client } }
+    | { type: "ADD_CLIENT"; payload: { realm: string; client: Client } }
     | {
           type: "UPDATE_CLIENT";
           payload: {
-              realmId: string;
+              realm: string;
               clientId: string;
               updates: Partial<Client>;
           };
       }
     | {
           type: "DELETE_CLIENT";
-          payload: { realmId: string; clientId: string };
+          payload: { realm: string; clientId: string };
       }
-    | { type: "ADD_LICENSE"; payload: { realmId: string; license: License } }
+    | { type: "ADD_LICENSE"; payload: { realm: string; license: License } }
     | {
           type: "DELETE_LICENSE";
-          payload: { realmId: string; licenseId: string };
+          payload: { realm: string; licenseId: string };
       };
 
 interface RealmState {
     storage: KeyWritHubStorage;
     isLoading: boolean;
+}
+
+function updateRealmInArray(
+    realms: Realm[],
+    realmId: string,
+    updater: (realm: Realm) => Realm,
+): Realm[] {
+    return realms.map((r) => (r.realm === realmId ? updater(r) : r));
 }
 
 function realmReducer(state: RealmState, action: RealmAction): RealmState {
@@ -71,41 +82,41 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                 ...state,
                 storage: {
                     ...state.storage,
-                    activeRealmId: action.payload.id,
-                    realms: {
-                        ...state.storage.realms,
-                        [action.payload.id]: action.payload,
-                    },
+                    activeRealmId: action.payload.realm,
+                    realms: [...state.storage.realms, action.payload],
                 },
             };
 
         case "UPDATE_REALM": {
-            const existing = state.storage.realms[action.payload.id];
-            if (!existing) return state;
+            const exists = state.storage.realms.some(
+                (r) => r.realm === action.payload.realm,
+            );
+            if (!exists) return state;
 
             return {
                 ...state,
                 storage: {
                     ...state.storage,
-                    realms: {
-                        ...state.storage.realms,
-                        [action.payload.id]: {
-                            ...existing,
+                    realms: updateRealmInArray(
+                        state.storage.realms,
+                        action.payload.realm,
+                        (r) => ({
+                            ...r,
                             ...action.payload.updates,
                             updatedAt: Date.now(),
-                        },
-                    },
+                        }),
+                    ),
                 },
             };
         }
 
         case "DELETE_REALM": {
-            const { [action.payload]: _, ...remainingRealms } =
-                state.storage.realms;
-            const realmIds = Object.keys(remainingRealms);
+            const remaining = state.storage.realms.filter(
+                (r) => r.realm !== action.payload,
+            );
             const newActiveId =
                 state.storage.activeRealmId === action.payload
-                    ? (realmIds[0] ?? null)
+                    ? (remaining[0]?.realm ?? null)
                     : state.storage.activeRealmId;
 
             return {
@@ -113,7 +124,7 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                 storage: {
                     ...state.storage,
                     activeRealmId: newActiveId,
-                    realms: remainingRealms,
+                    realms: remaining,
                 },
             };
         }
@@ -123,36 +134,38 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                 ...state,
                 storage: {
                     ...state.storage,
-                    activeRealmId: action.payload.id,
-                    realms: {
-                        ...state.storage.realms,
-                        [action.payload.id]: action.payload,
-                    },
+                    activeRealmId: action.payload.realm,
+                    realms: [...state.storage.realms, action.payload],
                 },
             };
 
         case "ADD_CLIENT": {
-            const realm = state.storage.realms[action.payload.realmId];
-            if (!realm) return state;
+            const exists = state.storage.realms.some(
+                (r) => r.realm === action.payload.realm,
+            );
+            if (!exists) return state;
 
             return {
                 ...state,
                 storage: {
                     ...state.storage,
-                    realms: {
-                        ...state.storage.realms,
-                        [action.payload.realmId]: {
-                            ...realm,
-                            clients: [...realm.clients, action.payload.client],
+                    realms: updateRealmInArray(
+                        state.storage.realms,
+                        action.payload.realm,
+                        (r) => ({
+                            ...r,
+                            clients: [...r.clients, action.payload.client],
                             updatedAt: Date.now(),
-                        },
-                    },
+                        }),
+                    ),
                 },
             };
         }
 
         case "UPDATE_CLIENT": {
-            const realm = state.storage.realms[action.payload.realmId];
+            const realm = state.storage.realms.find(
+                (r) => r.realm === action.payload.realm,
+            );
             if (!realm) return state;
 
             const clientIndex = realm.clients.findIndex(
@@ -160,91 +173,99 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
             );
             if (clientIndex === -1) return state;
 
-            const updatedClients = [...realm.clients];
-            updatedClients[clientIndex] = {
-                ...updatedClients[clientIndex],
-                ...action.payload.updates,
-            };
-
             return {
                 ...state,
                 storage: {
                     ...state.storage,
-                    realms: {
-                        ...state.storage.realms,
-                        [action.payload.realmId]: {
-                            ...realm,
-                            clients: updatedClients,
-                            updatedAt: Date.now(),
+                    realms: updateRealmInArray(
+                        state.storage.realms,
+                        action.payload.realm,
+                        (r) => {
+                            const updatedClients = [...r.clients];
+                            updatedClients[clientIndex] = {
+                                ...updatedClients[clientIndex],
+                                ...action.payload.updates,
+                            };
+                            return {
+                                ...r,
+                                clients: updatedClients,
+                                updatedAt: Date.now(),
+                            };
                         },
-                    },
+                    ),
                 },
             };
         }
 
         case "DELETE_CLIENT": {
-            const realm = state.storage.realms[action.payload.realmId];
-            if (!realm) return state;
+            const exists = state.storage.realms.some(
+                (r) => r.realm === action.payload.realm,
+            );
+            if (!exists) return state;
 
             return {
                 ...state,
                 storage: {
                     ...state.storage,
-                    realms: {
-                        ...state.storage.realms,
-                        [action.payload.realmId]: {
-                            ...realm,
-                            clients: realm.clients.filter(
+                    realms: updateRealmInArray(
+                        state.storage.realms,
+                        action.payload.realm,
+                        (r) => ({
+                            ...r,
+                            clients: r.clients.filter(
                                 (c) => c.client !== action.payload.clientId,
                             ),
                             updatedAt: Date.now(),
-                        },
-                    },
+                        }),
+                    ),
                 },
             };
         }
 
         case "ADD_LICENSE": {
-            const realm = state.storage.realms[action.payload.realmId];
-            if (!realm) return state;
+            const exists = state.storage.realms.some(
+                (r) => r.realm === action.payload.realm,
+            );
+            if (!exists) return state;
 
             return {
                 ...state,
                 storage: {
                     ...state.storage,
-                    realms: {
-                        ...state.storage.realms,
-                        [action.payload.realmId]: {
-                            ...realm,
-                            licenses: [
-                                ...realm.licenses,
-                                action.payload.license,
-                            ],
+                    realms: updateRealmInArray(
+                        state.storage.realms,
+                        action.payload.realm,
+                        (r) => ({
+                            ...r,
+                            licenses: [...r.licenses, action.payload.license],
                             updatedAt: Date.now(),
-                        },
-                    },
+                        }),
+                    ),
                 },
             };
         }
 
         case "DELETE_LICENSE": {
-            const realm = state.storage.realms[action.payload.realmId];
-            if (!realm) return state;
+            const exists = state.storage.realms.some(
+                (r) => r.realm === action.payload.realm,
+            );
+            if (!exists) return state;
 
             return {
                 ...state,
                 storage: {
                     ...state.storage,
-                    realms: {
-                        ...state.storage.realms,
-                        [action.payload.realmId]: {
-                            ...realm,
-                            licenses: realm.licenses.filter(
+                    realms: updateRealmInArray(
+                        state.storage.realms,
+                        action.payload.realm,
+                        (r) => ({
+                            ...r,
+                            licenses: r.licenses.filter(
                                 (l) => l.jti !== action.payload.licenseId,
                             ),
                             updatedAt: Date.now(),
-                        },
-                    },
+                        }),
+                    ),
                 },
             };
         }
@@ -258,22 +279,28 @@ export interface RealmContextValue {
     activeRealm: Realm | null;
     realms: Realm[];
     isLoading: boolean;
-    createRealm: (name: string, description?: string) => Promise<Realm>;
-    updateRealm: (id: string, updates: Partial<Omit<Realm, "id">>) => void;
-    deleteRealm: (id: string) => void;
-    setActiveRealm: (id: string | null) => void;
-    exportRealm: (id: string, includeLicenses?: boolean) => string;
+    createRealm: (realm: string, label?: string) => Promise<Realm>;
+    updateRealm: (
+        realm: string,
+        updates: Partial<Omit<Realm, "realm">>,
+    ) => void;
+    deleteRealm: (realm: string) => void;
+    setActiveRealm: (realm: string | null) => void;
+    exportRealm: (realm: string, includeLicenses?: boolean) => string;
     importRealm: (json: string) => Promise<Realm>;
-    updateRealmDefaults: (id: string, defaults: Partial<RealmDefaults>) => void;
-    addClient: (realmId: string, client: Client) => void;
+    updateRealmDefaults: (
+        realm: string,
+        defaults: Partial<RealmDefaults>,
+    ) => void;
+    addClient: (realm: string, client: Client) => void;
     updateClient: (
-        realmId: string,
+        realm: string,
         clientId: string,
         updates: Partial<Client>,
     ) => void;
-    deleteClient: (realmId: string, clientId: string) => void;
-    addLicense: (realmId: string, license: License) => void;
-    deleteLicense: (realmId: string, licenseId: string) => void;
+    deleteClient: (realm: string, clientId: string) => void;
+    addLicense: (realm: string, license: License) => void;
+    deleteLicense: (realm: string, licenseId: string) => void;
 }
 
 export const RealmContext = createContext<RealmContextValue | null>(null);
@@ -282,7 +309,7 @@ const initialState: RealmState = {
     storage: {
         version: CURRENT_STORAGE_VERSION,
         activeRealmId: null,
-        realms: {},
+        realms: [],
     },
     isLoading: true,
 };
@@ -293,22 +320,38 @@ export function RealmProvider({ children }: { children: ReactNode }) {
     // Load from localStorage on mount
     useEffect(() => {
         const storage = loadStorage();
-        // Normalize realms to ensure they have clients and licenses
-        const normalizedRealms: Record<string, Realm> = {};
-        for (const [id, realm] of Object.entries(storage.realms)) {
-            // Handle migration from Record to array format
-            const clients = Array.isArray(realm.clients)
-                ? realm.clients
-                : Object.values(realm.clients ?? {});
-            const licenses = Array.isArray(realm.licenses)
-                ? realm.licenses
-                : Object.values(realm.licenses ?? {});
-            normalizedRealms[id] = {
-                ...realm,
+        // Handle migration from Record to array format
+        const oldRealms = storage.realms as unknown;
+        const realmsArray: Realm[] = Array.isArray(oldRealms)
+            ? oldRealms
+            : Object.values(oldRealms ?? {});
+
+        // Normalize realms to ensure they have all fields
+        const normalizedRealms: Realm[] = realmsArray.map((r) => {
+            // Handle migration from old field names
+            const oldRealm = r as Realm & {
+                id?: string;
+                name?: string;
+                description?: string;
+            };
+            const clients = Array.isArray(r.clients)
+                ? r.clients
+                : Object.values(r.clients ?? {});
+            const licenses = Array.isArray(r.licenses)
+                ? r.licenses
+                : Object.values(r.licenses ?? {});
+            return {
+                realm: oldRealm.realm ?? oldRealm.name ?? oldRealm.id,
+                label: oldRealm.label ?? oldRealm.description,
+                keyPair: r.keyPair,
+                defaults: r.defaults ?? {},
                 clients,
                 licenses,
+                createdAt: r.createdAt,
+                updatedAt: r.updatedAt,
             };
-        }
+        });
+
         dispatch({
             type: "LOAD_SUCCESS",
             payload: { ...storage, realms: normalizedRealms },
@@ -323,14 +366,13 @@ export function RealmProvider({ children }: { children: ReactNode }) {
     }, [state.storage, state.isLoading]);
 
     const createRealm = useCallback(
-        async (name: string, description?: string): Promise<Realm> => {
+        async (realm: string, label?: string): Promise<Realm> => {
             const keyPair = await generateKeyPair();
             const now = Date.now();
 
-            const realm: Realm = {
-                id: crypto.randomUUID(),
-                name,
-                description,
+            const newRealm: Realm = {
+                realm,
+                label,
                 keyPair,
                 defaults: {},
                 clients: [],
@@ -339,40 +381,40 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 updatedAt: now,
             };
 
-            dispatch({ type: "CREATE_REALM", payload: realm });
-            return realm;
+            dispatch({ type: "CREATE_REALM", payload: newRealm });
+            return newRealm;
         },
         [],
     );
 
     const updateRealm = useCallback(
-        (id: string, updates: Partial<Omit<Realm, "id">>) => {
-            dispatch({ type: "UPDATE_REALM", payload: { id, updates } });
+        (realm: string, updates: Partial<Omit<Realm, "realm">>) => {
+            dispatch({ type: "UPDATE_REALM", payload: { realm, updates } });
         },
         [],
     );
 
-    const deleteRealm = useCallback((id: string) => {
-        dispatch({ type: "DELETE_REALM", payload: id });
+    const deleteRealm = useCallback((realm: string) => {
+        dispatch({ type: "DELETE_REALM", payload: realm });
     }, []);
 
-    const setActiveRealm = useCallback((id: string | null) => {
-        dispatch({ type: "SET_ACTIVE_REALM", payload: id });
+    const setActiveRealm = useCallback((realm: string | null) => {
+        dispatch({ type: "SET_ACTIVE_REALM", payload: realm });
     }, []);
 
     const exportRealm = useCallback(
-        (id: string, includeLicenses = false): string => {
-            const realm = state.storage.realms[id];
+        (realmId: string, includeLicenses = false): string => {
+            const realm = state.storage.realms.find((r) => r.realm === realmId);
             if (!realm) {
-                throw new Error(`Realm not found: ${id}`);
+                throw new Error(`Realm not found: ${realmId}`);
             }
 
             const exported: ExportedRealm = {
                 exportVersion: 1,
                 exportedAt: Date.now(),
                 realm: {
-                    name: realm.name,
-                    description: realm.description,
+                    realm: realm.realm,
+                    label: realm.label,
                     privateKey: realm.keyPair.privateKey,
                     publicKey: realm.keyPair.publicKey,
                     publicKeyHex: realm.keyPair.publicKeyHex,
@@ -400,9 +442,8 @@ export function RealmProvider({ children }: { children: ReactNode }) {
 
         const now = Date.now();
         const realm: Realm = {
-            id: crypto.randomUUID(),
-            name: parsed.realm.name,
-            description: parsed.realm.description,
+            realm: parsed.realm.realm,
+            label: parsed.realm.label,
             keyPair: {
                 privateKey: parsed.realm.privateKey,
                 publicKey: parsed.realm.publicKey,
@@ -421,14 +462,14 @@ export function RealmProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const updateRealmDefaults = useCallback(
-        (id: string, defaults: Partial<RealmDefaults>) => {
-            const realm = state.storage.realms[id];
+        (realmId: string, defaults: Partial<RealmDefaults>) => {
+            const realm = state.storage.realms.find((r) => r.realm === realmId);
             if (!realm) return;
 
             dispatch({
                 type: "UPDATE_REALM",
                 payload: {
-                    id,
+                    realm: realmId,
                     updates: {
                         defaults: { ...realm.defaults, ...defaults },
                     },
@@ -438,43 +479,45 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         [state.storage.realms],
     );
 
-    const addClient = useCallback((realmId: string, client: Client) => {
-        dispatch({ type: "ADD_CLIENT", payload: { realmId, client } });
+    const addClient = useCallback((realm: string, client: Client) => {
+        dispatch({ type: "ADD_CLIENT", payload: { realm, client } });
     }, []);
 
     const updateClient = useCallback(
-        (realmId: string, clientId: string, updates: Partial<Client>) => {
+        (realm: string, clientId: string, updates: Partial<Client>) => {
             dispatch({
                 type: "UPDATE_CLIENT",
-                payload: { realmId, clientId, updates },
+                payload: { realm, clientId, updates },
             });
         },
         [],
     );
 
-    const deleteClient = useCallback((realmId: string, clientId: string) => {
+    const deleteClient = useCallback((realm: string, clientId: string) => {
         dispatch({
             type: "DELETE_CLIENT",
-            payload: { realmId, clientId },
+            payload: { realm, clientId },
         });
     }, []);
 
-    const addLicense = useCallback((realmId: string, license: License) => {
-        dispatch({ type: "ADD_LICENSE", payload: { realmId, license } });
+    const addLicense = useCallback((realm: string, license: License) => {
+        dispatch({ type: "ADD_LICENSE", payload: { realm, license } });
     }, []);
 
-    const deleteLicense = useCallback((realmId: string, licenseId: string) => {
+    const deleteLicense = useCallback((realm: string, licenseId: string) => {
         dispatch({
             type: "DELETE_LICENSE",
-            payload: { realmId, licenseId },
+            payload: { realm, licenseId },
         });
     }, []);
 
     const activeRealm = state.storage.activeRealmId
-        ? (state.storage.realms[state.storage.activeRealmId] ?? null)
+        ? (state.storage.realms.find(
+              (r) => r.realm === state.storage.activeRealmId,
+          ) ?? null)
         : null;
 
-    const realms = Object.values(state.storage.realms).sort(
+    const realms = [...state.storage.realms].sort(
         (a, b) => b.createdAt - a.createdAt,
     );
 

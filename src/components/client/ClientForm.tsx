@@ -67,7 +67,7 @@ export function ClientForm({
         }
 
         if (isEditing) {
-            updateClient(activeRealm.id, editClient.client, {
+            updateClient(activeRealm.realm, editClient.client, {
                 client: client.trim(),
                 label: label.trim() || undefined,
             });
@@ -77,7 +77,7 @@ export function ClientForm({
                 label: label.trim() || undefined,
                 createdAt: Date.now(),
             };
-            addClient(activeRealm.id, newClient);
+            addClient(activeRealm.realm, newClient);
         }
 
         handleClose(false);

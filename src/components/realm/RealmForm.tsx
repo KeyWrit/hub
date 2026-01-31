@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useRealms } from "@/hooks/useRealms";
 import type { Realm } from "@/lib/types";
 import { sanitizeIdentifier } from "@/lib/utils";
@@ -22,35 +21,47 @@ interface RealmFormProps {
 }
 
 export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
-    const { createRealm, updateRealm } = useRealms();
-    const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
+    const { createRealm, updateRealm, realms } = useRealms();
+    const [realmId, setRealmId] = useState("");
+    const [label, setLabel] = useState("");
+    const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isEditing = !!realm;
 
     useEffect(() => {
         if (open) {
-            setName(realm?.name ?? "");
-            setDescription(realm?.description ?? "");
+            setRealmId(realm?.realm ?? "");
+            setLabel(realm?.label ?? "");
+            setError(null);
         }
     }, [open, realm]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!name.trim()) return;
+        if (!realmId.trim()) return;
+
+        // Check for duplicate realm ID (only if creating new or changing ID)
+        if (!isEditing || realmId.trim() !== realm.realm) {
+            const existingRealm = realms.find(
+                (r) => r.realm === realmId.trim(),
+            );
+            if (existingRealm) {
+                setError("A realm with this ID already exists");
+                return;
+            }
+        }
 
         setIsSubmitting(true);
 
         try {
             if (isEditing) {
-                updateRealm(realm.id, {
-                    name: name.trim(),
-                    description: description.trim() || undefined,
+                updateRealm(realm.realm, {
+                    label: label.trim() || undefined,
                 });
             } else {
-                await createRealm(name.trim(), description.trim() || undefined);
+                await createRealm(realmId.trim(), label.trim() || undefined);
             }
             onOpenChange(false);
         } finally {
@@ -75,15 +86,19 @@ export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
 
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="realm">Realm ID</Label>
                             <Input
-                                id="name"
-                                value={name}
-                                onChange={(e) =>
-                                    setName(sanitizeIdentifier(e.target.value))
-                                }
+                                id="realm"
+                                value={realmId}
+                                onChange={(e) => {
+                                    setRealmId(
+                                        sanitizeIdentifier(e.target.value),
+                                    );
+                                    setError(null);
+                                }}
                                 placeholder="my-application"
                                 required
+                                disabled={isEditing}
                             />
                             <p className="text-xs text-muted-foreground">
                                 Lowercase letters, numbers, dashes, and
@@ -92,17 +107,18 @@ export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="description">
-                                Description (optional)
-                            </Label>
-                            <Textarea
-                                id="description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Production license keys for..."
-                                rows={3}
+                            <Label htmlFor="label">Label</Label>
+                            <Input
+                                id="label"
+                                value={label}
+                                onChange={(e) => setLabel(e.target.value)}
+                                placeholder="Optional display name"
                             />
                         </div>
+
+                        {error && (
+                            <p className="text-sm text-destructive">{error}</p>
+                        )}
                     </div>
 
                     <DialogFooter>
@@ -115,7 +131,7 @@ export function RealmForm({ open, onOpenChange, realm }: RealmFormProps) {
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isSubmitting || !name.trim()}
+                            disabled={isSubmitting || !realmId.trim()}
                         >
                             {isSubmitting
                                 ? isEditing

@@ -44,7 +44,7 @@ export function ClientList() {
                             key={client.client}
                             client={client}
                             onDelete={() =>
-                                deleteClient(activeRealm.id, client.client)
+                                deleteClient(activeRealm.realm, client.client)
                             }
                         />
                     ))}

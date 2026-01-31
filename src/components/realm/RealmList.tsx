@@ -26,21 +26,21 @@ export function RealmList({ onNavigate }: RealmListProps) {
     return (
         <ul className="space-y-1">
             {realms.map((realm) => {
-                const isActive = activeRealm?.id === realm.id;
+                const isActive = activeRealm?.realm === realm.realm;
 
                 return (
-                    <li key={realm.id}>
+                    <li key={realm.realm}>
                         <Button
                             variant={isActive ? "default" : "ghost"}
                             size="sm"
-                            onClick={() => handleRealmClick(realm.id)}
+                            onClick={() => handleRealmClick(realm.realm)}
                             className={cn(
                                 "w-full justify-start",
                                 !isActive && "text-foreground",
                             )}
                         >
                             <span className="flex-1 truncate text-left">
-                                {realm.name}
+                                {realm.label || realm.realm}
                             </span>
                             {isActive && <Check className="h-4 w-4 shrink-0" />}
                         </Button>

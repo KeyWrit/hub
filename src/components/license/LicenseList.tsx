@@ -86,7 +86,10 @@ export function LicenseList({ clientId, clientSub }: LicenseListProps) {
                                 key={license.jti}
                                 license={license}
                                 onDelete={() =>
-                                    deleteLicense(activeRealm.id, license.jti)
+                                    deleteLicense(
+                                        activeRealm.realm,
+                                        license.jti,
+                                    )
                                 }
                             />
                         ))}

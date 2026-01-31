@@ -39,9 +39,8 @@ export interface License {
 }
 
 export interface Realm {
-    id: string;
-    name: string;
-    description?: string;
+    realm: string;
+    label?: string;
     keyPair: KeyPair;
     defaults: RealmDefaults;
     clients: Client[];
@@ -53,15 +52,15 @@ export interface Realm {
 export interface KeyWritHubStorage {
     version: number;
     activeRealmId: string | null;
-    realms: Record<string, Realm>;
+    realms: Realm[];
 }
 
 export interface ExportedRealm {
     exportVersion: 1;
     exportedAt: number;
     realm: {
-        name: string;
-        description?: string;
+        realm: string;
+        label?: string;
         privateKey: JsonWebKey;
         publicKey: JsonWebKey;
         publicKeyHex: string;
