@@ -40,10 +40,10 @@ export function LicenseList() {
                     <div className="grid gap-4 sm:grid-cols-2">
                         {licenses.map((license) => (
                             <LicenseCard
-                                key={license.id}
+                                key={license.jti}
                                 license={license}
                                 onDelete={() =>
-                                    deleteLicense(activeRealm.id, license.id)
+                                    deleteLicense(activeRealm.id, license.jti)
                                 }
                             />
                         ))}

@@ -91,8 +91,7 @@ export function LicenseForm({ open, onOpenChange }: LicenseFormProps) {
                 exp = Math.floor(expirationDate.getTime() / 1000);
             }
 
-            const license = await createLicense(activeRealm, {
-                sub: client.trim(),
+            const license = await createLicense(activeRealm, client.trim(), {
                 label: label.trim() || undefined,
                 kind: kind.trim() || undefined,
                 flags: flags.trim()

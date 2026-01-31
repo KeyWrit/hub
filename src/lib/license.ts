@@ -1,11 +1,11 @@
 import * as jose from "jose";
 import type { License, Realm } from "@/lib/types";
 
+export const KEYWRIT_VERSION = 1;
+export const KEYWRIT_ISSUER = "keywrit";
+
 export interface LicenseParams {
-    sub: string;
     label?: string;
-    iss?: string;
-    aud?: string | string[];
     kind?: string;
     flags?: string[];
     features?: Record<string, unknown>;
@@ -16,7 +16,8 @@ export interface LicenseParams {
 
 export async function createLicense(
     realm: Realm,
-    params: LicenseParams,
+    sub: string,
+    params: LicenseParams = {},
 ): Promise<License> {
     const privateKey = await jose.importJWK(realm.keyPair.privateKey, "EdDSA");
 
@@ -28,8 +29,6 @@ export async function createLicense(
     const jti = crypto.randomUUID();
 
     // Merge realm defaults with provided params (params take precedence)
-    const iss = params.iss ?? realm.defaults.iss;
-    const aud = params.aud ?? realm.defaults.aud;
     const kind = params.kind ?? realm.defaults.kind;
     const flags = params.flags ?? realm.defaults.flags;
     const features = params.features ?? realm.defaults.features;
@@ -45,11 +44,10 @@ export async function createLicense(
     // Build JWT payload
     const payload: jose.JWTPayload = {
         jti,
-        sub: params.sub,
+        sub,
+        iss: KEYWRIT_ISSUER,
+        aud: realm.name,
     };
-
-    if (iss) payload.iss = iss;
-    if (aud) payload.aud = aud;
     if (kind) payload.kind = kind;
     if (flags && flags.length > 0) payload.flags = flags;
     if (features && Object.keys(features).length > 0)
@@ -60,16 +58,15 @@ export async function createLicense(
     if (params.nbf) payload.nbf = params.nbf;
 
     const token = await new jose.SignJWT(payload)
-        .setProtectedHeader({ alg: "EdDSA" })
+        .setProtectedHeader({ alg: "EdDSA", typ: "JWT", kwv: KEYWRIT_VERSION })
         .setIssuedAt(now)
         .sign(privateKey);
 
     const license: License = {
-        id: crypto.randomUUID(),
         jti,
-        sub: params.sub,
-        iss,
-        aud,
+        sub,
+        iss: KEYWRIT_ISSUER,
+        aud: realm.name,
         kind,
         flags,
         features,

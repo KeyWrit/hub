@@ -131,7 +131,7 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                             ...realm,
                             licenses: {
                                 ...realm.licenses,
-                                [action.payload.license.id]:
+                                [action.payload.license.jti]:
                                     action.payload.license,
                             },
                             updatedAt: Date.now(),

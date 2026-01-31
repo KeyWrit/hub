@@ -8,8 +8,6 @@ export interface KeyPair {
 }
 
 export interface RealmDefaults {
-    iss?: string;
-    aud?: string | string[];
     kind?: string;
     flags?: string[];
     features?: Record<string, unknown>;
@@ -18,7 +16,6 @@ export interface RealmDefaults {
 }
 
 export interface License {
-    id: string;
     jti: string;
     sub: string;
     iss?: string;
