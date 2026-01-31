@@ -11,6 +11,7 @@ import { loadStorage, saveStorage } from "@/lib/storage/storage";
 import type {
     ExportedRealm,
     KeyWritHubStorage,
+    License,
     Realm,
     RealmDefaults,
 } from "@/lib/types";
@@ -21,7 +22,12 @@ type RealmAction =
     | { type: "CREATE_REALM"; payload: Realm }
     | { type: "UPDATE_REALM"; payload: { id: string; updates: Partial<Realm> } }
     | { type: "DELETE_REALM"; payload: string }
-    | { type: "IMPORT_REALM"; payload: Realm };
+    | { type: "IMPORT_REALM"; payload: Realm }
+    | { type: "ADD_LICENSE"; payload: { realmId: string; license: License } }
+    | {
+          type: "DELETE_LICENSE";
+          payload: { realmId: string; licenseId: string };
+      };
 
 interface RealmState {
     storage: KeyWritHubStorage;
@@ -111,6 +117,53 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                 },
             };
 
+        case "ADD_LICENSE": {
+            const realm = state.storage.realms[action.payload.realmId];
+            if (!realm) return state;
+
+            return {
+                ...state,
+                storage: {
+                    ...state.storage,
+                    realms: {
+                        ...state.storage.realms,
+                        [action.payload.realmId]: {
+                            ...realm,
+                            licenses: {
+                                ...realm.licenses,
+                                [action.payload.license.id]:
+                                    action.payload.license,
+                            },
+                            updatedAt: Date.now(),
+                        },
+                    },
+                },
+            };
+        }
+
+        case "DELETE_LICENSE": {
+            const realm = state.storage.realms[action.payload.realmId];
+            if (!realm) return state;
+
+            const { [action.payload.licenseId]: _, ...remainingLicenses } =
+                realm.licenses;
+
+            return {
+                ...state,
+                storage: {
+                    ...state.storage,
+                    realms: {
+                        ...state.storage.realms,
+                        [action.payload.realmId]: {
+                            ...realm,
+                            licenses: remainingLicenses,
+                            updatedAt: Date.now(),
+                        },
+                    },
+                },
+            };
+        }
+
         default:
             return state;
     }
@@ -124,9 +177,11 @@ export interface RealmContextValue {
     updateRealm: (id: string, updates: Partial<Omit<Realm, "id">>) => void;
     deleteRealm: (id: string) => void;
     setActiveRealm: (id: string | null) => void;
-    exportRealm: (id: string) => string;
+    exportRealm: (id: string, includeLicenses?: boolean) => string;
     importRealm: (json: string) => Promise<Realm>;
     updateRealmDefaults: (id: string, defaults: Partial<RealmDefaults>) => void;
+    addLicense: (realmId: string, license: License) => void;
+    deleteLicense: (realmId: string, licenseId: string) => void;
 }
 
 export const RealmContext = createContext<RealmContextValue | null>(null);
@@ -146,7 +201,19 @@ export function RealmProvider({ children }: { children: ReactNode }) {
     // Load from localStorage on mount
     useEffect(() => {
         const storage = loadStorage();
-        dispatch({ type: "LOAD_SUCCESS", payload: storage });
+        // Normalize realms to ensure they have licenses and revocations
+        const normalizedRealms: Record<string, Realm> = {};
+        for (const [id, realm] of Object.entries(storage.realms)) {
+            normalizedRealms[id] = {
+                ...realm,
+                licenses: realm.licenses ?? {},
+                revocations: realm.revocations ?? [],
+            };
+        }
+        dispatch({
+            type: "LOAD_SUCCESS",
+            payload: { ...storage, realms: normalizedRealms },
+        });
     }, []);
 
     // Save to localStorage on changes (skip initial load)
@@ -167,6 +234,8 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 description,
                 keyPair,
                 defaults: {},
+                licenses: {},
+                revocations: [],
                 createdAt: now,
                 updatedAt: now,
             };
@@ -193,7 +262,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const exportRealm = useCallback(
-        (id: string): string => {
+        (id: string, includeLicenses = false): string => {
             const realm = state.storage.realms[id];
             if (!realm) {
                 throw new Error(`Realm not found: ${id}`);
@@ -209,6 +278,10 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                     publicKey: realm.keyPair.publicKey,
                     publicKeyHex: realm.keyPair.publicKeyHex,
                     defaults: realm.defaults,
+                    ...(includeLicenses && {
+                        licenses: realm.licenses,
+                        revocations: realm.revocations,
+                    }),
                 },
             };
 
@@ -238,6 +311,8 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 createdAt: parsed.exportedAt,
             },
             defaults: parsed.realm.defaults,
+            licenses: parsed.realm.licenses ?? {},
+            revocations: parsed.realm.revocations ?? [],
             createdAt: now,
             updatedAt: now,
         };
@@ -264,6 +339,17 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         [state.storage.realms],
     );
 
+    const addLicense = useCallback((realmId: string, license: License) => {
+        dispatch({ type: "ADD_LICENSE", payload: { realmId, license } });
+    }, []);
+
+    const deleteLicense = useCallback((realmId: string, licenseId: string) => {
+        dispatch({
+            type: "DELETE_LICENSE",
+            payload: { realmId, licenseId },
+        });
+    }, []);
+
     const activeRealm = state.storage.activeRealmId
         ? (state.storage.realms[state.storage.activeRealmId] ?? null)
         : null;
@@ -283,6 +369,8 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         exportRealm,
         importRealm,
         updateRealmDefaults,
+        addLicense,
+        deleteLicense,
     };
 
     return (

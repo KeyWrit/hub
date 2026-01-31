@@ -29,16 +29,17 @@ export function ExportDialog({
     const realm = realms.find((r) => r.id === realmId);
     if (!realm) return null;
 
-    const exportData = exportRealm(realmId);
+    const exportDataBasic = exportRealm(realmId, false);
+    const exportDataFull = exportRealm(realmId, true);
 
     const handleCopy = async () => {
-        await navigator.clipboard.writeText(exportData);
+        await navigator.clipboard.writeText(exportDataBasic);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
     const handleDownload = () => {
-        const blob = new Blob([exportData], { type: "application/json" });
+        const blob = new Blob([exportDataFull], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -60,13 +61,16 @@ export function ExportDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4">
+                <div className="space-y-2 py-4">
                     <Textarea
-                        value={exportData}
+                        value={exportDataBasic}
                         readOnly
                         rows={15}
                         className="font-mono text-xs break-all"
                     />
+                    <p className="text-xs text-muted-foreground">
+                        Use Download to include licenses and revocations.
+                    </p>
                 </div>
 
                 <DialogFooter className="gap-2">

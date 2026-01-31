@@ -31,13 +31,7 @@ export function RealmCard() {
     const [copied, setCopied] = useState(false);
 
     if (!activeRealm) {
-        return (
-            <div className="flex h-full items-center justify-center">
-                <p className="text-muted-foreground">
-                    Select a realm or create a new one to get started.
-                </p>
-            </div>
-        );
+        return null;
     }
 
     const handleCopyPublicKey = async () => {
@@ -68,7 +62,7 @@ export function RealmCard() {
     const createdDate = new Date(activeRealm.createdAt).toLocaleDateString();
 
     return (
-        <div className="p-6">
+        <>
             <Card>
                 <CardHeader>
                     <div className="flex items-start justify-between">
@@ -188,6 +182,6 @@ export function RealmCard() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </>
     );
 }

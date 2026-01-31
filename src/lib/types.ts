@@ -17,12 +17,40 @@ export interface RealmDefaults {
     expirationOffsetSeconds?: number;
 }
 
+export interface License {
+    id: string;
+    jti: string;
+    sub: string;
+    iss?: string;
+    aud?: string | string[];
+    kind?: string;
+    flags?: string[];
+    features?: Record<string, unknown>;
+    allowedDomains?: string[];
+    exp?: number;
+    nbf?: number;
+    iat: number;
+    token: string;
+    createdAt: number;
+    label?: string;
+}
+
+export interface RevocationEntry {
+    id: string;
+    type: "jti" | "sub";
+    value: string;
+    reason?: string;
+    revokedAt: number;
+}
+
 export interface Realm {
     id: string;
     name: string;
     description?: string;
     keyPair: KeyPair;
     defaults: RealmDefaults;
+    licenses: Record<string, License>;
+    revocations: RevocationEntry[];
     createdAt: number;
     updatedAt: number;
 }
@@ -43,5 +71,7 @@ export interface ExportedRealm {
         publicKey: JsonWebKey;
         publicKeyHex: string;
         defaults: RealmDefaults;
+        licenses?: Record<string, License>;
+        revocations?: RevocationEntry[];
     };
 }

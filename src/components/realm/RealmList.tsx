@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useRealms } from "@/hooks/useRealms";
 import { cn } from "@/lib/utils";
 
@@ -20,21 +21,20 @@ export function RealmList() {
 
                 return (
                     <li key={realm.id}>
-                        <button
-                            type="button"
+                        <Button
+                            variant={isActive ? "default" : "ghost"}
+                            size="sm"
                             onClick={() => setActiveRealm(realm.id)}
                             className={cn(
-                                "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-                                isActive
-                                    ? "bg-primary text-primary-foreground"
-                                    : "hover:bg-muted",
+                                "w-full justify-start",
+                                !isActive && "text-foreground",
                             )}
                         >
-                            <span className="flex-1 truncate">
+                            <span className="flex-1 truncate text-left">
                                 {realm.name}
                             </span>
                             {isActive && <Check className="h-4 w-4 shrink-0" />}
-                        </button>
+                        </Button>
                     </li>
                 );
             })}

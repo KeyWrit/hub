@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 export function Header() {
     return (
         <header className="border-b bg-background">
-            <div className="flex h-14 items-center justify-between px-4">
+            <div className="flex h-10 items-center justify-between px-4">
                 <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-semibold">KeyWrit Hub</h1>
+                    <h1 className="text-lg font-semibold">KeyWrit Hub</h1>
                 </div>
 
                 <nav className="flex items-center gap-2">
