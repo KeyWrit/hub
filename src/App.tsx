@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Header } from "@/components/layout/Header";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { Sidebar, SidebarContent } from "@/components/layout/Sidebar";
 import { LicenseSection } from "@/components/license/LicenseSection";
 import { RealmCard } from "@/components/realm/RealmCard";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { RealmProvider } from "@/context/RealmContext";
 import { useRealms } from "@/hooks/useRealms";
 
@@ -19,7 +21,7 @@ function MainContent() {
     }
 
     return (
-        <div className="flex h-full flex-col gap-4 p-6">
+        <div className="flex h-full flex-col gap-4 p-4 md:p-6">
             <RealmCard />
             <div className="min-h-0 flex-1">
                 <LicenseSection />
@@ -28,18 +30,36 @@ function MainContent() {
     );
 }
 
+function AppLayout() {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    return (
+        <div className="flex h-screen flex-col bg-background">
+            <Header onMenuClick={() => setSidebarOpen(true)} />
+            <div className="flex flex-1 overflow-hidden">
+                <Sidebar />
+                <main className="flex-1 overflow-auto">
+                    <MainContent />
+                </main>
+            </div>
+
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                <SheetContent
+                    side="left"
+                    className="w-72 p-0"
+                    showCloseButton={false}
+                >
+                    <SidebarContent onNavigate={() => setSidebarOpen(false)} />
+                </SheetContent>
+            </Sheet>
+        </div>
+    );
+}
+
 function App() {
     return (
         <RealmProvider>
-            <div className="flex h-screen flex-col bg-background">
-                <Header />
-                <div className="flex flex-1 overflow-hidden">
-                    <Sidebar />
-                    <main className="flex-1 overflow-auto">
-                        <MainContent />
-                    </main>
-                </div>
-            </div>
+            <AppLayout />
         </RealmProvider>
     );
 }

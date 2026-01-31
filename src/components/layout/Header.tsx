@@ -1,12 +1,26 @@
-import { BookOpen, ExternalLink, Github } from "lucide-react";
+import { BookOpen, ExternalLink, Github, Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/button";
 
-export function Header() {
+interface HeaderProps {
+    onMenuClick?: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
     return (
         <header className="border-b bg-background">
             <div className="flex h-14 items-center justify-between px-4">
                 <div className="flex items-center gap-2">
+                    {onMenuClick && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={onMenuClick}
+                            className="md:hidden"
+                        >
+                            <Menu className="h-5 w-5" />
+                        </Button>
+                    )}
                     <h1 className="text-xl font-semibold">KeyWrit Hub</h1>
                 </div>
 

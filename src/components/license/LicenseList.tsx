@@ -54,16 +54,20 @@ export function LicenseList({ clientId, clientSub }: LicenseListProps) {
                             className="h-8"
                             onClick={() => setShowManageClient(true)}
                         >
-                            <Settings className="mr-1.5 h-4 w-4" />
-                            Manage Client
+                            <Settings className="h-4 w-4 sm:mr-1.5" />
+                            <span className="hidden sm:inline">
+                                Manage Client
+                            </span>
                         </Button>
                         <Button
                             size="sm"
                             className="h-8"
                             onClick={() => setShowForm(true)}
                         >
-                            <Plus className="mr-1.5 h-4 w-4" />
-                            New License
+                            <Plus className="h-4 w-4 sm:mr-1.5" />
+                            <span className="hidden sm:inline">
+                                New License
+                            </span>
                         </Button>
                     </div>
                 </div>

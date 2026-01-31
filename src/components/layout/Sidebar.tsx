@@ -7,12 +7,16 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
-export function Sidebar() {
+interface SidebarContentProps {
+    onNavigate?: () => void;
+}
+
+export function SidebarContent({ onNavigate }: SidebarContentProps) {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [showImportDialog, setShowImportDialog] = useState(false);
 
     return (
-        <aside className="flex h-full w-64 flex-col border-r bg-muted/30">
+        <>
             <div className="flex gap-2 p-3">
                 <Button
                     variant="outline"
@@ -36,7 +40,7 @@ export function Sidebar() {
 
             <ScrollArea className="flex-1">
                 <div className="p-2">
-                    <RealmList />
+                    <RealmList onNavigate={onNavigate} />
                 </div>
             </ScrollArea>
 
@@ -45,6 +49,14 @@ export function Sidebar() {
                 open={showImportDialog}
                 onOpenChange={setShowImportDialog}
             />
+        </>
+    );
+}
+
+export function Sidebar() {
+    return (
+        <aside className="hidden md:flex h-full w-64 flex-col border-r bg-muted/30">
+            <SidebarContent />
         </aside>
     );
 }

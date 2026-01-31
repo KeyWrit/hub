@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import { useRealms } from "@/hooks/useRealms";
 import { cn } from "@/lib/utils";
 
-export function RealmList() {
+interface RealmListProps {
+    onNavigate?: () => void;
+}
+
+export function RealmList({ onNavigate }: RealmListProps) {
     const { realms, activeRealm, setActiveRealm } = useRealms();
 
     if (realms.length === 0) {
@@ -13,6 +17,11 @@ export function RealmList() {
             </p>
         );
     }
+
+    const handleRealmClick = (realmId: string) => {
+        setActiveRealm(realmId);
+        onNavigate?.();
+    };
 
     return (
         <ul className="space-y-1">
@@ -24,7 +33,7 @@ export function RealmList() {
                         <Button
                             variant={isActive ? "default" : "ghost"}
                             size="sm"
-                            onClick={() => setActiveRealm(realm.id)}
+                            onClick={() => handleRealmClick(realm.id)}
                             className={cn(
                                 "w-full justify-start",
                                 !isActive && "text-foreground",

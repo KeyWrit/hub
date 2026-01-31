@@ -70,7 +70,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="sm:max-w-xl md:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Import Realm</DialogTitle>
                     <DialogDescription>

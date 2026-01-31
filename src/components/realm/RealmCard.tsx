@@ -80,24 +80,24 @@ export function RealmCard() {
                                 size="sm"
                                 onClick={() => setShowExportDialog(true)}
                             >
-                                <Download className="mr-1.5 h-4 w-4" />
-                                Export
+                                <Download className="h-4 w-4 sm:mr-1.5" />
+                                <span className="hidden sm:inline">Export</span>
                             </Button>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setShowEditForm(true)}
                             >
-                                <Pencil className="mr-1.5 h-4 w-4" />
-                                Edit
+                                <Pencil className="h-4 w-4 sm:mr-1.5" />
+                                <span className="hidden sm:inline">Edit</span>
                             </Button>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setShowDeleteDialog(true)}
                             >
-                                <Trash2 className="mr-1.5 h-4 w-4" />
-                                Delete
+                                <Trash2 className="h-4 w-4 sm:mr-1.5" />
+                                <span className="hidden sm:inline">Delete</span>
                             </Button>
                         </div>
                     </div>
