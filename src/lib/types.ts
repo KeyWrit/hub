@@ -39,14 +39,6 @@ export interface License {
     label?: string;
 }
 
-export interface RevocationEntry {
-    id: string;
-    type: "jti" | "sub";
-    value: string;
-    reason?: string;
-    revokedAt: number;
-}
-
 export interface Realm {
     id: string;
     name: string;
@@ -55,7 +47,6 @@ export interface Realm {
     defaults: RealmDefaults;
     clients: Record<string, Client>;
     licenses: Record<string, License>;
-    revocations: RevocationEntry[];
     createdAt: number;
     updatedAt: number;
 }
@@ -78,6 +69,5 @@ export interface ExportedRealm {
         defaults: RealmDefaults;
         clients?: Record<string, Client>;
         licenses?: Record<string, License>;
-        revocations?: RevocationEntry[];
     };
 }

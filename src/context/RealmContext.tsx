@@ -298,14 +298,13 @@ export function RealmProvider({ children }: { children: ReactNode }) {
     // Load from localStorage on mount
     useEffect(() => {
         const storage = loadStorage();
-        // Normalize realms to ensure they have clients, licenses and revocations
+        // Normalize realms to ensure they have clients and licenses
         const normalizedRealms: Record<string, Realm> = {};
         for (const [id, realm] of Object.entries(storage.realms)) {
             normalizedRealms[id] = {
                 ...realm,
                 clients: realm.clients ?? {},
                 licenses: realm.licenses ?? {},
-                revocations: realm.revocations ?? [],
             };
         }
         dispatch({
@@ -334,7 +333,6 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 defaults: {},
                 clients: {},
                 licenses: {},
-                revocations: [],
                 createdAt: now,
                 updatedAt: now,
             };
@@ -380,7 +378,6 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                     ...(includeLicenses && {
                         clients: realm.clients,
                         licenses: realm.licenses,
-                        revocations: realm.revocations,
                     }),
                 },
             };
@@ -413,7 +410,6 @@ export function RealmProvider({ children }: { children: ReactNode }) {
             defaults: parsed.realm.defaults,
             clients: parsed.realm.clients ?? {},
             licenses: parsed.realm.licenses ?? {},
-            revocations: parsed.realm.revocations ?? [],
             createdAt: now,
             updatedAt: now,
         };

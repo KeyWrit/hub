@@ -69,7 +69,7 @@ export function ExportDialog({
                         className="font-mono text-xs break-all"
                     />
                     <p className="text-xs text-muted-foreground">
-                        Use Download to include licenses and revocations.
+                        Use Download to include clients and licenses.
                     </p>
                 </div>
 

@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
-import { ClientCombobox } from "@/components/client/ClientCombobox";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -27,14 +26,14 @@ import { createLicense } from "@/lib/license";
 interface LicenseFormProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    client: string;
 }
 
-export function LicenseForm({ open, onOpenChange }: LicenseFormProps) {
+export function LicenseForm({ open, onOpenChange, client }: LicenseFormProps) {
     const { activeRealm, addLicense } = useRealms();
     const [isCreating, setIsCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [client, setClient] = useState("");
     const [label, setLabel] = useState("");
     const [kind, setKind] = useState("");
     const [flags, setFlags] = useState("");
@@ -44,7 +43,6 @@ export function LicenseForm({ open, onOpenChange }: LicenseFormProps) {
     const [expirationType, setExpirationType] = useState("duration");
 
     const resetForm = () => {
-        setClient("");
         setLabel("");
         setKind("");
         setFlags("");
@@ -67,11 +65,6 @@ export function LicenseForm({ open, onOpenChange }: LicenseFormProps) {
 
         if (!activeRealm) return;
 
-        if (!client.trim()) {
-            setError("Client is required");
-            return;
-        }
-
         setIsCreating(true);
         setError(null);
 
@@ -92,7 +85,7 @@ export function LicenseForm({ open, onOpenChange }: LicenseFormProps) {
                 exp = Math.floor(expirationDate.getTime() / 1000);
             }
 
-            const license = await createLicense(activeRealm, client.trim(), {
+            const license = await createLicense(activeRealm, client, {
                 label: label.trim() || undefined,
                 kind: kind.trim() || undefined,
                 flags: flags.trim()
@@ -120,18 +113,13 @@ export function LicenseForm({ open, onOpenChange }: LicenseFormProps) {
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Create License</DialogTitle>
+                    <DialogTitle>New License for {client}</DialogTitle>
                     <DialogDescription>
-                        Generate a new signed JWT license token.
+                        Generate a new signed license.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="client">Client *</Label>
-                        <ClientCombobox value={client} onChange={setClient} />
-                    </div>
-
                     <div className="space-y-2">
                         <Label htmlFor="label">Label</Label>
                         <Input
