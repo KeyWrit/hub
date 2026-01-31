@@ -1,4 +1,5 @@
 import { BookOpen, ExternalLink, Github } from "lucide-react";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/button";
 
 export function Header() {
@@ -43,6 +44,7 @@ export function Header() {
                             <span className="hidden sm:inline">Source</span>
                         </a>
                     </Button>
+                    <ThemeToggle />
                 </nav>
             </div>
         </header>
