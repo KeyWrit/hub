@@ -13,9 +13,11 @@ export function ClientList() {
         return null;
     }
 
-    const clients = [...activeRealm.clients].sort(
-        (a, b) => b.createdAt - a.createdAt,
-    );
+    const clients = [...activeRealm.clients].sort((a, b) => {
+        const aName = (a.label || a.client).toLowerCase();
+        const bName = (b.label || b.client).toLowerCase();
+        return aName.localeCompare(bName);
+    });
 
     return (
         <div className="space-y-4">

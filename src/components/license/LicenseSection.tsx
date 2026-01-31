@@ -32,9 +32,11 @@ export function LicenseSection() {
 
     if (!activeRealm) return null;
 
-    const allClients = [...activeRealm.clients].sort(
-        (a, b) => b.createdAt - a.createdAt,
-    );
+    const allClients = [...activeRealm.clients].sort((a, b) => {
+        const aName = (a.label || a.client).toLowerCase();
+        const bName = (b.label || b.client).toLowerCase();
+        return aName.localeCompare(bName);
+    });
 
     const filteredClients = search.trim()
         ? allClients.filter((client) => {

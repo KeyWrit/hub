@@ -517,9 +517,11 @@ export function RealmProvider({ children }: { children: ReactNode }) {
           ) ?? null)
         : null;
 
-    const realms = [...state.storage.realms].sort(
-        (a, b) => b.createdAt - a.createdAt,
-    );
+    const realms = [...state.storage.realms].sort((a, b) => {
+        const aName = (a.label || a.realm).toLowerCase();
+        const bName = (b.label || b.realm).toLowerCase();
+        return aName.localeCompare(bName);
+    });
 
     const value: RealmContextValue = {
         activeRealm,
