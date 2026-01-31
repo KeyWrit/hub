@@ -75,6 +75,7 @@ export function ClientForm({
             const newClient: Client = {
                 id: clientId.trim(),
                 label: label.trim() || undefined,
+                licenses: [],
                 createdAt: Date.now(),
             };
             addClient(activeRealm.id, newClient);

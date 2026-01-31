@@ -6,19 +6,19 @@ export const KEYWRIT_ISSUER = "keywrit";
 export const KEYWRIT_TYPE = "KWL";
 
 export interface LicenseParams {
+    clientId: string;
     label?: string;
     kind?: string;
     flags?: string[];
     features?: Record<string, unknown>;
     allowedDomains?: string[];
-    exp?: number;
-    nbf?: number;
+    expiresAt?: number;
+    notBefore: number;
 }
 
 export async function createLicense(
     realm: Realm,
-    sub: string,
-    params: LicenseParams = {},
+    params: LicenseParams,
 ): Promise<License> {
     const privateKey = await jose.importJWK(realm.keyPair.privateKey, "EdDSA");
 
@@ -27,7 +27,7 @@ export async function createLicense(
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const jti = crypto.randomUUID();
+    const id = crypto.randomUUID();
 
     // Merge realm defaults with provided params (params take precedence)
     const kind = params.kind ?? realm.defaults.kind;
@@ -37,15 +37,15 @@ export async function createLicense(
         params.allowedDomains ?? realm.defaults.allowedDomains;
 
     // Calculate expiration from offset if not explicitly provided
-    let exp = params.exp;
-    if (exp === undefined && realm.defaults.expirationOffsetSeconds) {
-        exp = now + realm.defaults.expirationOffsetSeconds;
+    let expiresAt = params.expiresAt;
+    if (expiresAt === undefined && realm.defaults.expirationOffsetSeconds) {
+        expiresAt = now + realm.defaults.expirationOffsetSeconds;
     }
 
-    // Build JWT payload
+    // Build JWT payload (uses JWT claim names for the token)
     const payload: jose.JWTPayload = {
-        jti,
-        sub,
+        jti: id,
+        sub: params.clientId,
         iss: KEYWRIT_ISSUER,
         aud: realm.id,
     };
@@ -55,8 +55,8 @@ export async function createLicense(
         payload.features = features;
     if (allowedDomains && allowedDomains.length > 0)
         payload.allowedDomains = allowedDomains;
-    if (exp) payload.exp = exp;
-    if (params.nbf) payload.nbf = params.nbf;
+    if (expiresAt) payload.exp = expiresAt;
+    payload.nbf = params.notBefore;
 
     const token = await new jose.SignJWT(payload)
         .setProtectedHeader({
@@ -68,17 +68,14 @@ export async function createLicense(
         .sign(privateKey);
 
     const license: License = {
-        jti,
-        sub,
-        iss: KEYWRIT_ISSUER,
-        aud: realm.id,
+        id,
         kind,
         flags,
         features,
         allowedDomains,
-        exp,
-        nbf: params.nbf,
-        iat: now,
+        expiresAt,
+        notBefore: params.notBefore,
+        issuedAt: now,
         token,
         createdAt: Date.now(),
         label: params.label,

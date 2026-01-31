@@ -14,6 +14,8 @@ Always run `bun run check` after making changes. This runs linting (Biome), type
 
 KeyWrit is **signing-method agnostic**. It uses public key infrastructure (PKI) for license validation but does not depend on any specific signing algorithm. The current implementation uses Ed25519 for key generation, but this is an implementation detail, not a library requirement. Do not document or describe KeyWrit as being tied to Ed25519 or any specific algorithm.
 
+KeyWrit Hub is also **token-format agnostic**. The `License` interface uses generic field names (e.g., `id`, `expiresAt`, `notBefore`, `issuedAt`) rather than JWT-specific claim names (e.g., `jti`, `exp`, `nbf`, `iat`). The current implementation generates JWT tokens, but the License type should not expose JWT terminology. Keep the internal token generation separate from the License interface.
+
 ## Architecture
 
 React web application for generating JWT license tokens.

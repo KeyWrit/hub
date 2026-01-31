@@ -41,10 +41,13 @@ type RealmAction =
           type: "DELETE_CLIENT";
           payload: { realmId: string; clientId: string };
       }
-    | { type: "ADD_LICENSE"; payload: { realmId: string; license: License } }
+    | {
+          type: "ADD_LICENSE";
+          payload: { realmId: string; clientId: string; license: License };
+      }
     | {
           type: "DELETE_LICENSE";
-          payload: { realmId: string; licenseId: string };
+          payload: { realmId: string; clientId: string; licenseId: string };
       };
 
 interface RealmState {
@@ -224,10 +227,15 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
         }
 
         case "ADD_LICENSE": {
-            const exists = state.storage.realms.some(
+            const realm = state.storage.realms.find(
                 (r) => r.id === action.payload.realmId,
             );
-            if (!exists) return state;
+            if (!realm) return state;
+
+            const client = realm.clients.find(
+                (c) => c.id === action.payload.clientId,
+            );
+            if (!client) return state;
 
             return {
                 ...state,
@@ -238,7 +246,17 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                         action.payload.realmId,
                         (r) => ({
                             ...r,
-                            licenses: [...r.licenses, action.payload.license],
+                            clients: r.clients.map((c) =>
+                                c.id === action.payload.clientId
+                                    ? {
+                                          ...c,
+                                          licenses: [
+                                              ...c.licenses,
+                                              action.payload.license,
+                                          ],
+                                      }
+                                    : c,
+                            ),
                             updatedAt: Date.now(),
                         }),
                     ),
@@ -247,10 +265,15 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
         }
 
         case "DELETE_LICENSE": {
-            const exists = state.storage.realms.some(
+            const realm = state.storage.realms.find(
                 (r) => r.id === action.payload.realmId,
             );
-            if (!exists) return state;
+            if (!realm) return state;
+
+            const client = realm.clients.find(
+                (c) => c.id === action.payload.clientId,
+            );
+            if (!client) return state;
 
             return {
                 ...state,
@@ -261,8 +284,17 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                         action.payload.realmId,
                         (r) => ({
                             ...r,
-                            licenses: r.licenses.filter(
-                                (l) => l.jti !== action.payload.licenseId,
+                            clients: r.clients.map((c) =>
+                                c.id === action.payload.clientId
+                                    ? {
+                                          ...c,
+                                          licenses: c.licenses.filter(
+                                              (l) =>
+                                                  l.id !==
+                                                  action.payload.licenseId,
+                                          ),
+                                      }
+                                    : c,
                             ),
                             updatedAt: Date.now(),
                         }),
@@ -297,8 +329,12 @@ export interface RealmContextValue {
         updates: Partial<Client>,
     ) => void;
     deleteClient: (realmId: string, clientId: string) => void;
-    addLicense: (realmId: string, license: License) => void;
-    deleteLicense: (realmId: string, licenseId: string) => void;
+    addLicense: (realmId: string, clientId: string, license: License) => void;
+    deleteLicense: (
+        realmId: string,
+        clientId: string,
+        licenseId: string,
+    ) => void;
 }
 
 export const RealmContext = createContext<RealmContextValue | null>(null);
@@ -331,20 +367,45 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 realm?: string;
                 name?: string;
                 description?: string;
+                licenses?: License[];
             };
-            const clients = Array.isArray(r.clients)
+            const clientsRaw = Array.isArray(r.clients)
                 ? r.clients
                 : Object.values(r.clients ?? {});
-            const licenses = Array.isArray(r.licenses)
-                ? r.licenses
-                : Object.values(r.licenses ?? {});
+
+            // Handle migration: move realm-level licenses into clients
+            const oldLicenses = Array.isArray(oldRealm.licenses)
+                ? oldRealm.licenses
+                : Object.values(oldRealm.licenses ?? {});
+
+            // Normalize clients and ensure they have licenses arrays
+            const clients = clientsRaw.map((c) => {
+                const oldClient = c as Client & { sub?: string };
+                const clientLicenses = Array.isArray(c.licenses)
+                    ? c.licenses
+                    : [];
+                // Also migrate any realm-level licenses that belong to this client
+                const migratedLicenses = oldLicenses
+                    .filter(
+                        (l: License & { sub?: string }) =>
+                            l.sub === c.id || l.sub === oldClient.sub,
+                    )
+                    .map((l: License & { sub?: string; jti?: string }) => ({
+                        ...l,
+                        id: l.id ?? l.jti ?? crypto.randomUUID(),
+                    }));
+                return {
+                    ...c,
+                    licenses: [...clientLicenses, ...migratedLicenses],
+                };
+            });
+
             return {
                 id: oldRealm.id ?? oldRealm.realm ?? oldRealm.name,
                 label: oldRealm.label ?? oldRealm.description,
                 keyPair: r.keyPair,
                 defaults: r.defaults ?? {},
                 clients,
-                licenses,
                 createdAt: r.createdAt,
                 updatedAt: r.updatedAt,
             };
@@ -374,7 +435,6 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 keyPair,
                 defaults: {},
                 clients: [],
-                licenses: [],
                 createdAt: now,
                 updatedAt: now,
             };
@@ -419,7 +479,6 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                     defaults: realm.defaults,
                     ...(includeLicenses && {
                         clients: realm.clients,
-                        licenses: realm.licenses,
                     }),
                 },
             };
@@ -439,6 +498,11 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         }
 
         const now = Date.now();
+        // Ensure each client has a licenses array
+        const clients = (parsed.realm.clients ?? []).map((c) => ({
+            ...c,
+            licenses: c.licenses ?? [],
+        }));
         const realm: Realm = {
             id: parsed.realm.id,
             label: parsed.realm.label,
@@ -449,8 +513,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 createdAt: parsed.exportedAt,
             },
             defaults: parsed.realm.defaults,
-            clients: parsed.realm.clients ?? [],
-            licenses: parsed.realm.licenses ?? [],
+            clients,
             createdAt: now,
             updatedAt: now,
         };
@@ -498,16 +561,25 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         });
     }, []);
 
-    const addLicense = useCallback((realmId: string, license: License) => {
-        dispatch({ type: "ADD_LICENSE", payload: { realmId, license } });
-    }, []);
+    const addLicense = useCallback(
+        (realmId: string, clientId: string, license: License) => {
+            dispatch({
+                type: "ADD_LICENSE",
+                payload: { realmId, clientId, license },
+            });
+        },
+        [],
+    );
 
-    const deleteLicense = useCallback((realmId: string, licenseId: string) => {
-        dispatch({
-            type: "DELETE_LICENSE",
-            payload: { realmId, licenseId },
-        });
-    }, []);
+    const deleteLicense = useCallback(
+        (realmId: string, clientId: string, licenseId: string) => {
+            dispatch({
+                type: "DELETE_LICENSE",
+                payload: { realmId, clientId, licenseId },
+            });
+        },
+        [],
+    );
 
     const activeRealm = state.storage.activeRealmId
         ? (state.storage.realms.find(

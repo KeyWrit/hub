@@ -3,6 +3,7 @@
 export interface Client {
     id: string;
     label?: string;
+    licenses: License[];
     createdAt: number;
 }
 
@@ -22,17 +23,14 @@ export interface RealmDefaults {
 }
 
 export interface License {
-    jti: string;
-    sub: string;
-    iss?: string;
-    aud?: string | string[];
+    id: string;
     kind?: string;
     flags?: string[];
     features?: Record<string, unknown>;
     allowedDomains?: string[];
-    exp?: number;
-    nbf?: number;
-    iat: number;
+    expiresAt?: number;
+    notBefore: number;
+    issuedAt: number;
     token: string;
     createdAt: number;
     label?: string;
@@ -44,7 +42,6 @@ export interface Realm {
     keyPair: KeyPair;
     defaults: RealmDefaults;
     clients: Client[];
-    licenses: License[];
     createdAt: number;
     updatedAt: number;
 }
@@ -66,6 +63,5 @@ export interface ExportedRealm {
         publicKeyHex: string;
         defaults: RealmDefaults;
         clients?: Client[];
-        licenses?: License[];
     };
 }

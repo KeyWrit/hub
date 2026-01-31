@@ -29,10 +29,10 @@ export function LicenseCard({ license, onDelete }: LicenseCardProps) {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const displayName = license.label || license.sub;
+    const displayName = license.label || license.id;
     const createdDate = new Date(license.createdAt).toLocaleDateString();
-    const expiresDate = license.exp
-        ? new Date(license.exp * 1000).toLocaleDateString()
+    const expiresDate = license.expiresAt
+        ? new Date(license.expiresAt * 1000).toLocaleDateString()
         : "Never";
 
     return (
@@ -44,9 +44,6 @@ export function LicenseCard({ license, onDelete }: LicenseCardProps) {
                             <CardTitle className="truncate text-base">
                                 {displayName}
                             </CardTitle>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                                Client: {license.sub}
-                            </p>
                         </div>
                         <div className="flex gap-1">
                             <Button

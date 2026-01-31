@@ -70,8 +70,8 @@ export function LicenseForm({ open, onOpenChange, client }: LicenseFormProps) {
 
         try {
             const now = Math.floor(Date.now() / 1000);
-            const nbf = now - 5 * 60; // 5 minutes ago
-            let exp: number | undefined;
+            const notBefore = now - 5 * 60; // 5 minutes ago
+            let expiresAt: number | undefined;
 
             if (expirationType === "duration" && expirationDays.trim()) {
                 const days = Number.parseInt(expirationDays, 10);
@@ -80,12 +80,13 @@ export function LicenseForm({ open, onOpenChange, client }: LicenseFormProps) {
                     setIsCreating(false);
                     return;
                 }
-                exp = now + days * 24 * 60 * 60;
+                expiresAt = now + days * 24 * 60 * 60;
             } else if (expirationType === "date" && expirationDate) {
-                exp = Math.floor(expirationDate.getTime() / 1000);
+                expiresAt = Math.floor(expirationDate.getTime() / 1000);
             }
 
-            const license = await createLicense(activeRealm, client, {
+            const license = await createLicense(activeRealm, {
+                clientId: client,
                 label: label.trim() || undefined,
                 kind: kind.trim() || undefined,
                 flags: flags.trim()
@@ -94,11 +95,11 @@ export function LicenseForm({ open, onOpenChange, client }: LicenseFormProps) {
                 allowedDomains: allowedDomains.trim()
                     ? allowedDomains.split(",").map((d) => d.trim())
                     : undefined,
-                exp,
-                nbf,
+                expiresAt,
+                notBefore,
             });
 
-            addLicense(activeRealm.id, license);
+            addLicense(activeRealm.id, client, license);
             handleClose(false);
         } catch (err) {
             setError(

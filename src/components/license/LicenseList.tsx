@@ -33,10 +33,10 @@ export function LicenseList({ clientId, clientSub }: LicenseListProps) {
     const client = activeRealm.clients.find((c) => c.id === clientId);
     if (!client) return null;
 
-    // Filter licenses by the selected client's sub
-    const licenses = activeRealm.licenses
-        .filter((license) => license.sub === client.id)
-        .sort((a, b) => b.createdAt - a.createdAt);
+    // Get licenses from the client
+    const licenses = [...client.licenses].sort(
+        (a, b) => b.createdAt - a.createdAt,
+    );
 
     return (
         <>
@@ -83,10 +83,14 @@ export function LicenseList({ clientId, clientSub }: LicenseListProps) {
                     <div className="grid gap-4 sm:grid-cols-2">
                         {licenses.map((license) => (
                             <LicenseCard
-                                key={license.jti}
+                                key={license.id}
                                 license={license}
                                 onDelete={() =>
-                                    deleteLicense(activeRealm.id, license.jti)
+                                    deleteLicense(
+                                        activeRealm.id,
+                                        client.id,
+                                        license.id,
+                                    )
                                 }
                             />
                         ))}
