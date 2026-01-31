@@ -36,6 +36,6 @@ export function createEmptyStorage(): KeyWritHubStorage {
     return {
         version: CURRENT_STORAGE_VERSION,
         activeRealmId: null,
-        realms: {},
+        realms: [],
     };
 }

@@ -379,18 +379,17 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 : Object.values(oldRealm.licenses ?? {});
 
             // Normalize clients and ensure they have licenses arrays
-            const clients = clientsRaw.map((c) => {
-                const oldClient = c as Client & { sub?: string };
+            const clients = clientsRaw.map((rawClient) => {
+                const c = rawClient as Client & { sub?: string };
                 const clientLicenses = Array.isArray(c.licenses)
                     ? c.licenses
                     : [];
                 // Also migrate any realm-level licenses that belong to this client
-                const migratedLicenses = oldLicenses
-                    .filter(
-                        (l: License & { sub?: string }) =>
-                            l.sub === c.id || l.sub === oldClient.sub,
-                    )
-                    .map((l: License & { sub?: string; jti?: string }) => ({
+                const migratedLicenses = (
+                    oldLicenses as (License & { sub?: string; jti?: string })[]
+                )
+                    .filter((l) => l.sub === c.id || l.sub === c.sub)
+                    .map((l) => ({
                         ...l,
                         id: l.id ?? l.jti ?? crypto.randomUUID(),
                     }));

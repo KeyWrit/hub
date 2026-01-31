@@ -12,7 +12,7 @@ describe("migrations", () => {
         const storage = createEmptyStorage();
         expect(storage.version).toBe(CURRENT_STORAGE_VERSION);
         expect(storage.activeRealmId).toBeNull();
-        expect(storage.realms).toEqual({});
+        expect(storage.realms).toEqual([]);
     });
 
     it("returns empty storage for null data", () => {
@@ -29,7 +29,7 @@ describe("migrations", () => {
         const data: KeyWritHubStorage = {
             version: CURRENT_STORAGE_VERSION,
             activeRealmId: "test-id",
-            realms: {},
+            realms: [],
         };
         const storage = migrateStorage(data);
         expect(storage).toEqual(data);
@@ -45,28 +45,30 @@ describe("storage", () => {
         const storage = loadStorage();
         expect(storage.version).toBe(CURRENT_STORAGE_VERSION);
         expect(storage.activeRealmId).toBeNull();
-        expect(storage.realms).toEqual({});
+        expect(storage.realms).toEqual([]);
     });
 
     it("saves and loads storage correctly", () => {
+        const now = Date.now();
         const data: KeyWritHubStorage = {
             version: CURRENT_STORAGE_VERSION,
             activeRealmId: "realm-1",
-            realms: {
-                "realm-1": {
+            realms: [
+                {
                     id: "realm-1",
-                    name: "Test Realm",
+                    label: "Test Realm",
                     keyPair: {
                         privateKey: { kty: "OKP" },
                         publicKey: { kty: "OKP" },
                         publicKeyHex: "abc123",
-                        createdAt: Date.now(),
+                        createdAt: now,
                     },
                     defaults: {},
-                    createdAt: Date.now(),
-                    updatedAt: Date.now(),
+                    clients: [],
+                    createdAt: now,
+                    updatedAt: now,
                 },
-            },
+            ],
         };
 
         saveStorage(data);
@@ -78,7 +80,7 @@ describe("storage", () => {
         const data: KeyWritHubStorage = {
             version: CURRENT_STORAGE_VERSION,
             activeRealmId: null,
-            realms: {},
+            realms: [],
         };
         saveStorage(data);
         clearStorage();
