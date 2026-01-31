@@ -216,11 +216,10 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                         ...state.storage.realms,
                         [action.payload.realmId]: {
                             ...realm,
-                            licenses: {
+                            licenses: [
                                 ...realm.licenses,
-                                [action.payload.license.jti]:
-                                    action.payload.license,
-                            },
+                                action.payload.license,
+                            ],
                             updatedAt: Date.now(),
                         },
                     },
@@ -232,9 +231,6 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
             const realm = state.storage.realms[action.payload.realmId];
             if (!realm) return state;
 
-            const { [action.payload.licenseId]: _, ...remainingLicenses } =
-                realm.licenses;
-
             return {
                 ...state,
                 storage: {
@@ -243,7 +239,9 @@ function realmReducer(state: RealmState, action: RealmAction): RealmState {
                         ...state.storage.realms,
                         [action.payload.realmId]: {
                             ...realm,
-                            licenses: remainingLicenses,
+                            licenses: realm.licenses.filter(
+                                (l) => l.jti !== action.payload.licenseId,
+                            ),
                             updatedAt: Date.now(),
                         },
                     },
@@ -298,14 +296,17 @@ export function RealmProvider({ children }: { children: ReactNode }) {
         // Normalize realms to ensure they have clients and licenses
         const normalizedRealms: Record<string, Realm> = {};
         for (const [id, realm] of Object.entries(storage.realms)) {
-            // Handle migration from Record<string, Client> to Client[]
+            // Handle migration from Record to array format
             const clients = Array.isArray(realm.clients)
                 ? realm.clients
                 : Object.values(realm.clients ?? {});
+            const licenses = Array.isArray(realm.licenses)
+                ? realm.licenses
+                : Object.values(realm.licenses ?? {});
             normalizedRealms[id] = {
                 ...realm,
                 clients,
-                licenses: realm.licenses ?? {},
+                licenses,
             };
         }
         dispatch({
@@ -333,7 +334,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
                 keyPair,
                 defaults: {},
                 clients: [],
-                licenses: {},
+                licenses: [],
                 createdAt: now,
                 updatedAt: now,
             };
@@ -410,7 +411,7 @@ export function RealmProvider({ children }: { children: ReactNode }) {
             },
             defaults: parsed.realm.defaults,
             clients: parsed.realm.clients ?? [],
-            licenses: parsed.realm.licenses ?? {},
+            licenses: parsed.realm.licenses ?? [],
             createdAt: now,
             updatedAt: now,
         };

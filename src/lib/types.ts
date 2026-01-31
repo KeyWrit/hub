@@ -45,7 +45,7 @@ export interface Realm {
     keyPair: KeyPair;
     defaults: RealmDefaults;
     clients: Client[];
-    licenses: Record<string, License>;
+    licenses: License[];
     createdAt: number;
     updatedAt: number;
 }
@@ -67,6 +67,6 @@ export interface ExportedRealm {
         publicKeyHex: string;
         defaults: RealmDefaults;
         clients?: Client[];
-        licenses?: Record<string, License>;
+        licenses?: License[];
     };
 }

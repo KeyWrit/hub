@@ -30,11 +30,11 @@ export function LicenseList({ clientId, clientSub }: LicenseListProps) {
         );
     }
 
-    const client = activeRealm.clients[clientId];
+    const client = activeRealm.clients.find((c) => c.client === clientId);
     if (!client) return null;
 
     // Filter licenses by the selected client's sub
-    const licenses = Object.values(activeRealm.licenses ?? {})
+    const licenses = activeRealm.licenses
         .filter((license) => license.sub === client.client)
         .sort((a, b) => b.createdAt - a.createdAt);
 
