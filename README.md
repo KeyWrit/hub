@@ -22,4 +22,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for full development setup and guidelin
 
 ## License
 
-[MIT](./LICENSE)
+[MIT License](./LICENSE)
